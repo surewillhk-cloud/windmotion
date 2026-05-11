@@ -75,5 +75,10 @@ class AgentPool:
     def get_all(self) -> List[BaseAgent]:
         return list(self.agents.values())
 
+    async def initialize(self):
+        """Async initialization hook. Agents are loaded in __init__,
+        this method exists for compatibility with async startup patterns."""
+        pass
+
     def get_profiles(self) -> Dict:
         return {aid: agent.profile.to_dict() for aid, agent in self.agents.items()}
