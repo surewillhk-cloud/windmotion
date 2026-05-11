@@ -22,7 +22,8 @@ logger.info(f"Starting on port {os.getenv('PORT', '8000')}")
 async def lifespan(app: FastAPI):
     """Application lifespan - startup and shutdown."""
     logger.info("Wind Motion starting up...")
-    # Initialize DB connections on startup
+
+    # Initialize DB connections (non-fatal if they fail)
     from backend.db.postgres import PostgresClient
     from backend.db.neo4j_client import Neo4jClient
     from backend.db.redis_client import RedisClient
@@ -30,9 +31,21 @@ async def lifespan(app: FastAPI):
     pg = PostgresClient()
     neo = Neo4jClient()
     redis = RedisClient()
-    await pg.connect()
-    await neo.connect()
-    await redis.connect()
+
+    try:
+        await pg.connect()
+    except Exception as e:
+        logger.warning(f"PostgreSQL connection failed (will retry later): {e}")
+
+    try:
+        await neo.connect()
+    except Exception as e:
+        logger.warning(f"Neo4j connection failed (will retry later): {e}")
+
+    try:
+        await redis.connect()
+    except Exception as e:
+        logger.warning(f"Redis connection failed (will retry later): {e}")
 
     app.state.pg = pg
     app.state.neo = neo
@@ -42,9 +55,18 @@ async def lifespan(app: FastAPI):
     yield
 
     logger.info("Wind Motion shutting down...")
-    await pg.disconnect()
-    await neo.disconnect()
-    await redis.disconnect()
+    try:
+        await pg.disconnect()
+    except Exception:
+        pass
+    try:
+        await neo.disconnect()
+    except Exception:
+        pass
+    try:
+        await redis.disconnect()
+    except Exception:
+        pass
 
 
 app = FastAPI(

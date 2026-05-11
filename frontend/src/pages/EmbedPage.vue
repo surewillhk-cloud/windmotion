@@ -336,7 +336,7 @@ onMounted(() => {
   postToParent('ready', { brand: brandName.value })
 })
 
-onUnmounted() { clearTimeout(autoTimer); clearInterval(elapsedTimer) }
+onUnmounted(() => { clearTimeout(autoTimer); clearInterval(elapsedTimer) })
 </script>
 
 <style lang="scss" scoped>
