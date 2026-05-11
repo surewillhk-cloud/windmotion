@@ -17,7 +17,11 @@ class PostgresClient:
     async def connect(self):
         try:
             import asyncpg
-            self.pool = await asyncpg.create_pool(self.dsn, min_size=2, max_size=10)
+            import asyncio
+            self.pool = await asyncio.wait_for(
+                asyncpg.create_pool(self.dsn, min_size=1, max_size=5, timeout=5),
+                timeout=15
+            )
             logger.info("PostgreSQL connected")
         except ImportError:
             logger.warning("asyncpg not installed, using mock mode")

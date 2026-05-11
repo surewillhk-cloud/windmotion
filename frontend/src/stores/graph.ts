@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { WSManager } from '@/services/ws'
 
 export interface GraphNode {
   id: string
@@ -33,29 +34,14 @@ export interface GraphData {
 }
 
 export const useGraphStore = defineStore('graph', () => {
-  const currentGraph = ref<GraphData>({
-    nodes: [
-      { id: 'n1', label: '大量买入 ETH', type: 'event', x: 0, y: 0, importance: 0.9 },
-      { id: 'n2', label: 'Gas 费飙升', type: 'factor', x: 0, y: 0, importance: 0.6 },
-      { id: 'n3', label: 'DEX 流动性变化', type: 'event', x: 0, y: 0, importance: 0.7 },
-      { id: 'n4', label: '价格突破阻力位', type: 'outcome', x: 0, y: 0, importance: 0.85 },
-      { id: 'n5', label: '止损触发', type: 'decision', x: 0, y: 0, importance: 0.5 },
-      { id: 'n6', label: '获利了结', type: 'decision', x: 0, y: 0, importance: 0.75 },
-      { id: 'n7', label: '后续买入', type: 'event', x: 0, y: 0, importance: 0.65 }
-    ],
-    edges: [
-      { id: 'e1', source: 'n1', target: 'n3', weight: 0.8, type: 'causal', label: '引起', animated: true },
-      { id: 'e2', source: 'n1', target: 'n2', weight: 0.6, type: 'correlation', label: '相关' },
-      { id: 'e3', source: 'n3', target: 'n4', weight: 0.7, type: 'causal', label: '导致', animated: true },
-      { id: 'e4', source: 'n4', target: 'n5', weight: 0.4, type: 'temporal', label: '之后' },
-      { id: 'e5', source: 'n4', target: 'n6', weight: 0.9, type: 'causal', label: '触发', animated: true },
-      { id: 'e6', source: 'n6', target: 'n7', weight: 0.5, type: 'temporal', label: '随后' }
-    ]
-  })
-
+  const currentGraph = ref<GraphData>({ nodes: [], edges: [] })
   const selectedNode = ref<GraphNode | null>(null)
   const hoveredNode = ref<GraphNode | null>(null)
   const graphLayout = ref<'force' | 'radial' | 'hierarchical'>('force')
+  const loading = ref(false)
+
+  // WebSocket manager for live graph updates
+  let wsManager: WSManager | null = null
 
   function selectNode(node: GraphNode | null) {
     selectedNode.value = node
@@ -73,14 +59,60 @@ export const useGraphStore = defineStore('graph', () => {
     graphLayout.value = layout
   }
 
+  // Apply incremental graph updates from WebSocket
+  function applyGraphUpdate(update: any) {
+    if (!update) return
+    if (update.nodes) {
+      for (const node of update.nodes) {
+        const existing = currentGraph.value.nodes.find(n => n.id === node.id)
+        if (existing) {
+          Object.assign(existing, node)
+        } else {
+          currentGraph.value.nodes.push(node)
+        }
+      }
+    }
+    if (update.edges) {
+      for (const edge of update.edges) {
+        const existing = currentGraph.value.edges.find(e => e.id === edge.id)
+        if (existing) {
+          Object.assign(existing, edge)
+        } else {
+          currentGraph.value.edges.push(edge)
+        }
+      }
+    }
+    if (update.remove_nodes) {
+      const ids = new Set(update.remove_nodes)
+      currentGraph.value.nodes = currentGraph.value.nodes.filter(n => !ids.has(n.id))
+      currentGraph.value.edges = currentGraph.value.edges.filter(e => {
+        const src = typeof e.source === 'string' ? e.source : e.source.id
+        const tgt = typeof e.target === 'string' ? e.target : e.target.id
+        return !ids.has(src) && !ids.has(tgt)
+      })
+    }
+  }
+
+  // Connect to live graph updates via WebSocket
+  function connectLiveUpdates(analysisId: string) {
+    disconnectLiveUpdates()
+    wsManager = new WSManager()
+    wsManager.connect(`/ws/analysis/${analysisId}/graph`)
+    wsManager.on('graph_update', (data: any) => applyGraphUpdate(data))
+    wsManager.on('message', (data: any) => {
+      if (data.graph) updateGraph(data.graph)
+      if (data.update) applyGraphUpdate(data.update)
+    })
+  }
+
+  function disconnectLiveUpdates() {
+    wsManager?.disconnect()
+    wsManager = null
+  }
+
   return {
-    currentGraph,
-    selectedNode,
-    hoveredNode,
-    graphLayout,
-    selectNode,
-    setHoveredNode,
-    updateGraph,
-    setLayout
+    currentGraph, selectedNode, hoveredNode, graphLayout, loading,
+    selectNode, setHoveredNode, updateGraph, setLayout,
+    applyGraphUpdate, connectLiveUpdates, disconnectLiveUpdates
   }
 })

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import * as api from '@/services/api'
 
 export interface WhaleAddress {
   id: string
@@ -31,106 +32,63 @@ export interface WhaleFeedItem {
 }
 
 export const useWhaleStore = defineStore('whale', () => {
-  const whales = ref<WhaleAddress[]>([
-    {
-      id: 'w1',
-      address: '0x1234...5678',
-      chain: 'Ethereum',
-      label: 'ETH Whale Alpha',
-      profit: 2450000,
-      winRate: 78.5,
-      roi: 342.1,
-      trades: 156,
-      tokens: ['ETH', 'UNI', 'AAVE', 'LINK'],
-      lastActive: new Date(Date.now() - 3600000).toISOString(),
-      score: 92,
-      behaviorTag: 'earlyBird',
-      riskProfile: 'medium'
-    },
-    {
-      id: 'w2',
-      address: '0xabcd...ef01',
-      chain: 'Ethereum',
-      label: 'DeFi Master',
-      profit: 1870000,
-      winRate: 82.3,
-      roi: 289.7,
-      trades: 203,
-      tokens: ['ETH', 'MKR', 'COMP', 'CRV'],
-      lastActive: new Date(Date.now() - 7200000).toISOString(),
-      score: 88,
-      behaviorTag: 'dcaMaster',
-      riskProfile: 'low'
-    },
-    {
-      id: 'w3',
-      address: '0x9876...5432',
-      chain: 'BSC',
-      label: 'BSC Sniper',
-      profit: 980000,
-      winRate: 65.2,
-      roi: 567.3,
-      trades: 412,
-      tokens: ['BNB', 'CAKE', 'XVS', 'BAKE'],
-      lastActive: new Date(Date.now() - 1800000).toISOString(),
-      score: 79,
-      behaviorTag: 'sniperEntry',
-      riskProfile: 'high'
-    }
-  ])
+  const whales = ref<WhaleAddress[]>([])
+  const feedItems = ref<WhaleFeedItem[]>([])
+  const currentWhale = ref<any>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  const feedItems = ref<WhaleFeedItem[]>([
-    {
-      id: 'f1',
-      whaleId: 'w1',
-      address: '0x1234...5678',
-      action: 'buy',
-      token: 'ETH',
-      amount: 150,
-      value: 525000,
-      chain: 'Ethereum',
-      timestamp: new Date(Date.now() - 120000).toISOString(),
-      txHash: '0xabc...def'
-    },
-    {
-      id: 'f2',
-      whaleId: 'w2',
-      address: '0xabcd...ef01',
-      action: 'sell',
-      token: 'UNI',
-      amount: 25000,
-      value: 187500,
-      chain: 'Ethereum',
-      timestamp: new Date(Date.now() - 300000).toISOString(),
-      txHash: '0x123...456'
-    },
-    {
-      id: 'f3',
-      whaleId: 'w3',
-      address: '0x9876...5432',
-      action: 'buy',
-      token: 'CAKE',
-      amount: 50000,
-      value: 95000,
-      chain: 'BSC',
-      timestamp: new Date(Date.now() - 600000).toISOString(),
-      txHash: '0x789...012'
-    }
-  ])
-
-  const activeWhales = computed(() => whales.value.filter(w => {
-    const lastActive = new Date(w.lastActive)
-    return Date.now() - lastActive.getTime() < 86400000
-  }))
-
+  const activeWhales = computed(() =>
+    whales.value.filter(w => Date.now() - new Date(w.lastActive).getTime() < 86400000)
+  )
   const topWhales = computed(() => [...whales.value].sort((a, b) => b.score - a.score))
 
-  function addWhale(whale: WhaleAddress) {
-    whales.value.push(whale)
+  async function fetchFeed(chain = 'bsc', minValue = 100000, limit = 50) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await api.getWhaleFeed(chain, minValue, limit)
+      feedItems.value = data.feed || data.items || data || []
+      if (data.whales) whales.value = data.whales
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch whale feed'
+      console.error('fetchFeed error:', e)
+    } finally {
+      loading.value = false
+    }
   }
 
-  function removeWhale(id: string) {
-    whales.value = whales.value.filter(w => w.id !== id)
+  async function fetchDetail(address: string) {
+    loading.value = true
+    error.value = null
+    try {
+      currentWhale.value = await api.getWhaleDetail(address)
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch whale detail'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchLibrary() {
+    loading.value = true
+    try {
+      const data = await api.getWhaleLibrary()
+      whales.value = data.whales || data || []
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch library'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function addWhaleToLibrary(address: string, nickname?: string) {
+    try {
+      await api.addToLibrary(address, nickname)
+      await fetchLibrary()
+    } catch (e: any) {
+      error.value = e.message || 'Failed to add to library'
+    }
   }
 
   function addFeedItem(item: WhaleFeedItem) {
@@ -143,13 +101,9 @@ export const useWhaleStore = defineStore('whale', () => {
   }
 
   return {
-    whales,
-    feedItems,
-    activeWhales,
-    topWhales,
-    addWhale,
-    removeWhale,
-    addFeedItem,
-    getWhaleById
+    whales, feedItems, currentWhale, loading, error,
+    activeWhales, topWhales,
+    fetchFeed, fetchDetail, fetchLibrary, addWhaleToLibrary,
+    addFeedItem, getWhaleById
   }
 })

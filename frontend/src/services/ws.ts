@@ -1,122 +1,160 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { io, Socket } from 'socket.io-client'
+import { WS_BASE } from './api'
 
-export interface WebSocketOptions {
-  url?: string
-  autoConnect?: boolean
-  reconnection?: boolean
-  reconnectionAttempts?: number
-  reconnectionDelay?: number
+// ── WSManager: Raw WebSocket connection manager ──
+export class WSManager {
+  private ws: WebSocket | null = null
+  private handlers: Map<string, Set<Function>> = new Map()
+  private path = ''
+  private reconnectTimer: ReturnType<typeof setTimeout> | undefined
+  private _connected = false
+
+  get connected() { return this._connected }
+
+  connect(path: string) {
+    this.path = path
+    const wsUrl = WS_BASE + path
+    try {
+      this.ws = new WebSocket(wsUrl)
+    } catch {
+      this.scheduleReconnect()
+      return
+    }
+
+    this.ws.onopen = () => {
+      this._connected = true
+      this.emit('__connected', {})
+    }
+
+    this.ws.onmessage = (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data)
+        this.emit(data.type || 'message', data)
+      } catch {
+        this.emit('message', { raw: e.data })
+      }
+    }
+
+    this.ws.onclose = () => {
+      this._connected = false
+      this.emit('__disconnected', {})
+      this.scheduleReconnect()
+    }
+
+    this.ws.onerror = () => {
+      this._connected = false
+    }
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer)
+    this.reconnectTimer = setTimeout(() => this.connect(this.path), 3000)
+  }
+
+  on(event: string, handler: Function) {
+    if (!this.handlers.has(event)) this.handlers.set(event, new Set())
+    this.handlers.get(event)!.add(handler)
+  }
+
+  off(event: string, handler?: Function) {
+    if (handler) {
+      this.handlers.get(event)?.delete(handler)
+    } else {
+      this.handlers.delete(event)
+    }
+  }
+
+  emit(event: string, data: any) {
+    this.handlers.get(event)?.forEach(fn => {
+      try { fn(data) } catch (e) { console.error('WS handler error:', e) }
+    })
+  }
+
+  send(data: any) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(typeof data === 'string' ? data : JSON.stringify(data))
+    }
+  }
+
+  disconnect() {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer)
+    this.ws?.close()
+    this.ws = null
+    this._connected = false
+  }
 }
 
-export function useWebSocket(options: WebSocketOptions = {}) {
-  const {
-    url = '/ws',
-    autoConnect = true,
-    reconnection = true,
-    reconnectionAttempts = 5,
-    reconnectionDelay = 3000
-  } = options
-
-  const socket = ref<Socket | null>(null)
+// ── useAnalysisWS: Vue composable for analysis progress ──
+export function useAnalysisWS(analysisId: string) {
+  const progress = ref<any>(null)
+  const status = ref<string>('connecting')
+  const graphUpdate = ref<any>(null)
+  const stageUpdate = ref<any>(null)
   const isConnected = ref(false)
-  const reconnectCount = ref(0)
-  const lastError = ref<string | null>(null)
 
-  const listeners = new Map<string, Set<Function>>()
+  const manager = new WSManager()
 
   function connect() {
-    if (socket.value?.connected) return
+    manager.connect(`/ws/analysis/${analysisId}/progress`)
 
-    socket.value = io(url, {
-      autoConnect,
-      reconnection,
-      reconnectionAttempts,
-      reconnectionDelay,
-      transports: ['websocket', 'polling']
-    })
-
-    socket.value.on('connect', () => {
+    manager.on('__connected', () => {
       isConnected.value = true
-      reconnectCount.value = 0
-      lastError.value = null
+      status.value = 'connected'
     })
 
-    socket.value.on('disconnect', (reason: string) => {
+    manager.on('__disconnected', () => {
       isConnected.value = false
-      console.warn('WebSocket disconnected:', reason)
+      status.value = 'disconnected'
     })
 
-    socket.value.on('connect_error', (error: Error) => {
-      lastError.value = error.message
-      reconnectCount.value++
+    manager.on('progress', (data: any) => {
+      progress.value = data
     })
 
-    // Re-register existing listeners
-    listeners.forEach((callbacks, event) => {
-      callbacks.forEach(cb => socket.value?.on(event, cb as any))
+    manager.on('status', (data: any) => {
+      status.value = data.status || data.state || 'unknown'
+    })
+
+    manager.on('graph_update', (data: any) => {
+      graphUpdate.value = data
+    })
+
+    manager.on('stage_update', (data: any) => {
+      stageUpdate.value = data
+    })
+
+    manager.on('completed', (data: any) => {
+      status.value = 'completed'
+      progress.value = data
+    })
+
+    manager.on('failed', (data: any) => {
+      status.value = 'failed'
+      progress.value = data
+    })
+
+    // Also handle generic messages
+    manager.on('message', (data: any) => {
+      if (data.progress) progress.value = data.progress
+      if (data.status) status.value = data.status
+      if (data.graph) graphUpdate.value = data.graph
+      if (data.stage) stageUpdate.value = data.stage
     })
   }
 
-  function disconnect() {
-    socket.value?.disconnect()
-    socket.value = null
-    isConnected.value = false
-  }
-
-  function on(event: string, callback: Function) {
-    if (!listeners.has(event)) {
-      listeners.set(event, new Set())
-    }
-    listeners.get(event)!.add(callback)
-    socket.value?.on(event, callback as any)
-  }
-
-  function off(event: string, callback?: Function) {
-    if (callback) {
-      listeners.get(event)?.delete(callback)
-      socket.value?.off(event, callback as any)
-    } else {
-      listeners.delete(event)
-      socket.value?.off(event)
-    }
-  }
-
-  function emit(event: string, data?: any) {
-    socket.value?.emit(event, data)
-  }
-
-  onMounted(() => {
-    if (autoConnect) connect()
-  })
+  onMounted(connect)
 
   onUnmounted(() => {
-    disconnect()
+    manager.disconnect()
   })
 
   return {
-    socket,
+    progress,
+    status,
+    graphUpdate,
+    stageUpdate,
     isConnected,
-    reconnectCount,
-    lastError,
-    connect,
-    disconnect,
-    on,
-    off,
-    emit
+    send: (data: any) => manager.send(data),
+    disconnect: () => manager.disconnect()
   }
-}
-
-// Singleton for global whale feed
-let globalSocket: Socket | null = null
-
-export function getGlobalSocket(): Socket {
-  if (!globalSocket) {
-    globalSocket = io('/ws', {
-      autoConnect: true,
-      reconnection: true,
-      transports: ['websocket', 'polling']
-    })
-  }
-  return globalSocket
 }

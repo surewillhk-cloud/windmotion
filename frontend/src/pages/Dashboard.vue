@@ -5,18 +5,19 @@
     <div class="dashboard-grid">
       <section class="feed-section">
         <h2>{{ t('dashboard.liveFeed') }}</h2>
-        <WhaleFeed :items="feedItems" @analyze="onAnalyze" />
+        <div v-if="whaleStore.loading" class="loading-state">Loading feed...</div>
+        <div v-else-if="whaleStore.error" class="error-state">{{ whaleStore.error }}</div>
+        <WhaleFeed v-else :items="whaleStore.feedItems" @analyze="onAnalyze" />
       </section>
 
       <div class="side-panels">
         <section class="filters-section">
           <h2>{{ t('dashboard.activeFilters') }}</h2>
-          <div v-for="filter in activeFilters" :key="filter.id" class="filter-item glow-card">
+          <div v-for="filter in analysisStore.filters" :key="filter.id" class="filter-item glow-card">
             <span class="filter-name">{{ filter.name }}</span>
-            <span class="filter-status" :style="{ color: filter.active ? '#00ff88' : '#8892a0' }">
-              {{ filter.active ? 'Running' : 'Paused' }}
-            </span>
+            <span class="filter-status" style="color: #00ff88">Active</span>
           </div>
+          <div v-if="!analysisStore.filters.length" class="empty-hint">No filters configured</div>
           <GlowButton @click="$router.push('/filters')">{{ t('dashboard.newFilter') }}</GlowButton>
         </section>
 
@@ -34,7 +35,7 @@
 
         <section class="quota-section glow-card">
           <h2>{{ t('dashboard.apiQuota') }}</h2>
-          <ProgressGlow :pct="(apiUsed / apiLimit) * 100" />
+          <ProgressGlow :pct="quotaPct" />
           <span class="quota-text mono-number">{{ apiUsed }} / {{ apiLimit }}</span>
         </section>
       </div>
@@ -43,35 +44,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useWhaleStore } from '@/stores/whale'
+import { useAnalysisStore } from '@/stores/analysis'
+import * as api from '@/services/api'
 import WhaleFeed from '@/components/whale/WhaleFeed.vue'
 import GlowButton from '@/components/common/GlowButton.vue'
 import ProgressGlow from '@/components/common/ProgressGlow.vue'
 
 const { t } = useI18n()
 const router = useRouter()
+const whaleStore = useWhaleStore()
+const analysisStore = useAnalysisStore()
 
-const feedItems = ref([])
-const activeFilters = ref([
-  { id: '1', name: 'BSC 大额交易', active: true },
-  { id: '2', name: '新Token鲸鱼', active: false }
-])
-const recentAnalyses = ref([
-  { id: 'a1', address: '0xabcdef1234567890', type: 'reverse', status: 'completed', score: 82 },
-  { id: 'a2', address: '0x1234567890abcdef', type: 'forward', status: 'running', score: null }
-])
-const apiUsed = ref(142)
+const recentAnalyses = ref<Array<{ id: string; address: string; type: string; status: string; score: number | null }>>([])
+const apiUsed = ref(0)
 const apiLimit = ref(1000)
+const quotaPct = computed(() => apiLimit.value > 0 ? (apiUsed.value / apiLimit.value) * 100 : 0)
 
 function shortAddr(addr: string) {
   return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : ''
 }
 
-function onAnalyze(address: string) {
-  router.push(`/reverse/${address}`)
+async function onAnalyze(address: string) {
+  try {
+    const analysisId = await analysisStore.startReverse(address)
+    router.push(`/reverse/${analysisId}`)
+  } catch {
+    // If API fails, still navigate with address
+    router.push(`/reverse/${address}`)
+  }
 }
+
+onMounted(async () => {
+  // Fetch real data
+  whaleStore.fetchFeed()
+  analysisStore.fetchFilters()
+
+  // Fetch quota
+  try {
+    const quota = await api.getSystemQuota()
+    apiUsed.value = quota.used ?? quota.api_used ?? 0
+    apiLimit.value = quota.limit ?? quota.api_limit ?? 1000
+  } catch { /* use defaults */ }
+
+  // Fetch recent analyses for history
+  try {
+    const history = await api.getHistory(1, 5)
+    recentAnalyses.value = (history.items || history || []).map((h: any) => ({
+      id: h.id || h.analysis_id,
+      address: h.whale_address || h.address || '',
+      type: h.type || 'reverse',
+      status: h.status || 'completed',
+      score: h.score ?? h.confidence ?? null
+    }))
+  } catch { /* empty */ }
+})
 </script>
 
 <style scoped>
@@ -86,4 +116,6 @@ function onAnalyze(address: string) {
 .type.reverse { background: rgba(124,58,237,0.2); color: #7c3aed; }
 .type.forward { background: rgba(0,229,255,0.2); color: #00e5ff; }
 .quota-text { font-size: 12px; color: var(--text-muted); margin-top: 8px; display: block; }
+.loading-state, .error-state, .empty-hint { font-size: 13px; color: var(--text-muted); padding: 12px; text-align: center; }
+.error-state { color: #ff6b6b; }
 </style>

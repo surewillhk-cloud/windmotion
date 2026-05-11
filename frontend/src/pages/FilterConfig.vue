@@ -127,21 +127,31 @@
       </section>
     </div>
 
+    <div v-if="saveStatus" class="save-feedback" :class="saveStatus">
+      {{ saveStatus === 'saving' ? 'Saving...' : saveStatus === 'success' ? 'Filter saved!' : 'Save failed' }}
+    </div>
+
     <div class="config-actions">
-      <GlowButton variant="primary" @click="saveConfig">Save Filter</GlowButton>
+      <GlowButton variant="primary" @click="saveConfig" :disabled="saving">
+        {{ saving ? 'Saving...' : 'Save Filter' }}
+      </GlowButton>
       <GlowButton variant="ghost" @click="$router.back()">Cancel</GlowButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAnalysisStore } from '@/stores/analysis'
 import GlowButton from '@/components/common/GlowButton.vue'
 
 const { t } = useI18n()
+const analysisStore = useAnalysisStore()
 
 const availableChains = ['BSC', 'Ethereum', 'Solana', 'Arbitrum', 'Polygon', 'Base']
+const saving = ref(false)
+const saveStatus = ref<'saving' | 'success' | 'error' | null>(null)
 
 const config = reactive({
   minTradeUsd: 10000,
@@ -175,10 +185,35 @@ function toggleChannel(ch: string) {
   else config.notifyChannels.push(ch)
 }
 
-function saveConfig() {
-  // TODO: save to backend
-  console.log('Saving config:', config)
+async function saveConfig() {
+  saving.value = true
+  saveStatus.value = 'saving'
+  try {
+    await analysisStore.saveFilter({
+      name: `Filter ${new Date().toLocaleDateString()}`,
+      scale: { minTradeUsd: config.minTradeUsd, minPortfolioUsd: config.minPortfolioUsd, minHoldings: config.minHoldings },
+      profitability: { minWinRate: config.minWinRate, minRoi: config.minRoi, minProfit: config.minProfit },
+      consistency: { minTrades: config.minTrades, activeDays: config.activeDays, maxDrawdown: config.maxDrawdown },
+      activity: { lastActiveDays: config.lastActiveDays, tradesPerWeek: config.tradesPerWeek },
+      chainToken: { chains: config.chains, tokens: config.tokens.split(',').map(t => t.trim()).filter(Boolean) },
+      autoAnalyze: config.autoAnalyze,
+      analysisType: config.analysisType,
+      notify: config.notify,
+      notifyChannels: config.notifyChannels
+    })
+    saveStatus.value = 'success'
+    setTimeout(() => { saveStatus.value = null }, 3000)
+  } catch {
+    saveStatus.value = 'error'
+    setTimeout(() => { saveStatus.value = null }, 3000)
+  } finally {
+    saving.value = false
+  }
 }
+
+onMounted(() => {
+  analysisStore.fetchFilters()
+})
 </script>
 
 <style scoped>
@@ -198,5 +233,9 @@ function saveConfig() {
 .toggle-row { height: 40px; }
 .toggle-btn { font-size: 12px; padding: 4px 16px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-family: var(--font-mono); transition: all 0.2s; }
 .toggle-btn.active { background: rgba(0,255,136,0.15); border-color: #00ff88; color: #00ff88; }
+.save-feedback { text-align: center; padding: 8px; border-radius: 4px; font-size: 13px; margin-top: 8px; }
+.save-feedback.saving { color: var(--accent); }
+.save-feedback.success { color: #00ff88; background: rgba(0,255,136,0.08); }
+.save-feedback.error { color: #ff6b6b; background: rgba(255,107,107,0.08); }
 .config-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
 </style>

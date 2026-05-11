@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import * as api from '@/services/api'
 
 export interface AnalysisJob {
   id: string
@@ -13,62 +14,7 @@ export interface AnalysisJob {
   estimatedCompletion: string
   confidence: number
   riskLevel: 'low' | 'medium' | 'high' | 'veryHigh'
-  result?: AnalysisResult
-}
-
-export interface AnalysisResult {
-  summary: string
-  causalGraph: CausalGraphData
-  eventChain: EventChainItem[]
-  probability: ProbabilityData
-  deliberation: DeliberationStep[]
-  report: string
-}
-
-export interface CausalGraphData {
-  nodes: CausalNode[]
-  edges: CausalEdge[]
-}
-
-export interface CausalNode {
-  id: string
-  label: string
-  type: 'event' | 'decision' | 'outcome' | 'factor'
-  x?: number
-  y?: number
-  importance: number
-  timestamp?: string
-}
-
-export interface CausalEdge {
-  source: string
-  target: string
-  weight: number
-  type: 'causal' | 'correlation' | 'temporal'
-  label?: string
-}
-
-export interface EventChainItem {
-  id: string
-  timestamp: string
-  event: string
-  description: string
-  impact: 'positive' | 'negative' | 'neutral'
-  magnitude: number
-}
-
-export interface ProbabilityData {
-  predictions: { time: string; probability: number; price: number }[]
-  scenarios: { name: string; probability: number; outcome: string }[]
-}
-
-export interface DeliberationStep {
-  agentId: string
-  agentName: string
-  reasoning: string
-  confidence: number
-  factors: { name: string; score: number }[]
-  conclusion: string
+  result?: any
 }
 
 export interface FilterConfig {
@@ -76,83 +22,180 @@ export interface FilterConfig {
   name: string
   createdAt: string
   matchCount: number
-  scale: { min: number; max: number }
-  profitability: { minWinRate: number; minROI: number }
-  consistency: { timePeriod: string }
-  activity: { minTrades: number }
-  chainToken: { chains: string[]; tokens: string[] }
-  autoAnalysis: boolean
-  notifications: boolean
+  [key: string]: any
 }
 
 export const useAnalysisStore = defineStore('analysis', () => {
-  const jobs = ref<AnalysisJob[]>([
-    {
-      id: 'a1',
-      whaleId: 'w1',
-      whaleAddress: '0x1234...5678',
-      type: 'forward',
-      status: 'completed',
-      currentStep: 5,
-      totalSteps: 5,
-      startTime: new Date(Date.now() - 3600000).toISOString(),
-      estimatedCompletion: new Date(Date.now() - 3000000).toISOString(),
-      confidence: 87,
-      riskLevel: 'medium'
-    },
-    {
-      id: 'a2',
-      whaleId: 'w2',
-      whaleAddress: '0xabcd...ef01',
-      type: 'reverse',
-      status: 'running',
-      currentStep: 3,
-      totalSteps: 5,
-      startTime: new Date(Date.now() - 1800000).toISOString(),
-      estimatedCompletion: new Date(Date.now() + 900000).toISOString(),
-      confidence: 72,
-      riskLevel: 'low'
-    }
-  ])
-
-  const filters = ref<FilterConfig[]>([
-    {
-      id: 'f1',
-      name: 'ETH 大额交易',
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      matchCount: 23,
-      scale: { min: 100000, max: 10000000 },
-      profitability: { minWinRate: 70, minROI: 100 },
-      consistency: { timePeriod: '30d' },
-      activity: { minTrades: 10 },
-      chainToken: { chains: ['Ethereum'], tokens: [] },
-      autoAnalysis: true,
-      notifications: true
-    },
-    {
-      id: 'f2',
-      name: 'BSC 高胜率鲸鱼',
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-      matchCount: 15,
-      scale: { min: 50000, max: 5000000 },
-      profitability: { minWinRate: 80, minROI: 200 },
-      consistency: { timePeriod: '7d' },
-      activity: { minTrades: 5 },
-      chainToken: { chains: ['BSC'], tokens: [] },
-      autoAnalysis: false,
-      notifications: true
-    }
-  ])
+  const jobs = ref<AnalysisJob[]>([])
+  const filters = ref<FilterConfig[]>([])
+  const currentAnalysis = ref<any>(null)
+  const progress = ref<any>(null)
+  const report = ref<any>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
   const completedJobs = computed(() => jobs.value.filter(j => j.status === 'completed'))
   const runningJobs = computed(() => jobs.value.filter(j => j.status === 'running'))
 
-  function getJobById(id: string) {
-    return jobs.value.find(j => j.id === id)
+  // ── Reverse Analysis ──
+  async function startReverse(address: string, mode = 'deep') {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await api.startReverseAnalysis(address, mode)
+      currentAnalysis.value = data
+      // Add to jobs list
+      const job: AnalysisJob = {
+        id: data.analysis_id || data.id,
+        whaleId: data.whale_id || '',
+        whaleAddress: address,
+        type: 'reverse',
+        status: 'running',
+        currentStep: 0,
+        totalSteps: 5,
+        startTime: new Date().toISOString(),
+        estimatedCompletion: '',
+        confidence: 0,
+        riskLevel: 'medium'
+      }
+      jobs.value.unshift(job)
+      return data.analysis_id || data.id
+    } catch (e: any) {
+      error.value = e.message || 'Failed to start reverse analysis'
+      throw e
+    } finally {
+      loading.value = false
+    }
   }
 
-  function addJob(job: AnalysisJob) {
-    jobs.value.push(job)
+  // ── Forward Analysis ──
+  async function startForward(address: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await api.startForwardInference(address)
+      currentAnalysis.value = data
+      const job: AnalysisJob = {
+        id: data.analysis_id || data.id,
+        whaleId: data.whale_id || '',
+        whaleAddress: address,
+        type: 'forward',
+        status: 'running',
+        currentStep: 0,
+        totalSteps: 5,
+        startTime: new Date().toISOString(),
+        estimatedCompletion: '',
+        confidence: 0,
+        riskLevel: 'medium'
+      }
+      jobs.value.unshift(job)
+      return data.analysis_id || data.id
+    } catch (e: any) {
+      error.value = e.message || 'Failed to start forward analysis'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ── Fetch progress ──
+  async function fetchProgress(id: string) {
+    try {
+      const data = await api.getAnalysisProgress(id)
+      progress.value = data
+      // Update job status
+      const job = jobs.value.find(j => j.id === id)
+      if (job) {
+        job.status = data.status || job.status
+        job.currentStep = data.current_step ?? data.step ?? job.currentStep
+        job.confidence = data.confidence ?? job.confidence
+      }
+      return data
+    } catch (e: any) {
+      console.error('fetchProgress error:', e)
+    }
+  }
+
+  // ── Fetch report ──
+  async function fetchReport(id: string) {
+    loading.value = true
+    try {
+      const data = await api.getAnalysisReport(id)
+      report.value = data.report || data
+      return report.value
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch report'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ── Fetch replay ──
+  async function fetchReplay(id: string) {
+    try {
+      return await api.getAnalysisReplay(id)
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch replay'
+    }
+  }
+
+  // ── Cancel analysis ──
+  async function cancel(id: string) {
+    try {
+      await api.cancelAnalysis(id)
+      const job = jobs.value.find(j => j.id === id)
+      if (job) job.status = 'failed'
+    } catch (e: any) {
+      error.value = e.message || 'Failed to cancel analysis'
+    }
+  }
+
+  // ── Filters ──
+  async function fetchFilters() {
+    try {
+      const data = await api.getFilters()
+      filters.value = data.filters || data || []
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch filters'
+    }
+  }
+
+  async function saveFilter(config: object) {
+    try {
+      const data = await api.createFilter(config)
+      filters.value.push(data)
+      return data
+    } catch (e: any) {
+      error.value = e.message || 'Failed to save filter'
+      throw e
+    }
+  }
+
+  async function removeFilter(id: string) {
+    try {
+      await api.deleteFilter(id)
+      filters.value = filters.value.filter(f => f.id !== id)
+    } catch (e: any) {
+      error.value = e.message || 'Failed to delete filter'
+    }
+  }
+
+  // ── Fetch analysis details ──
+  async function fetchAnalysis(id: string) {
+    loading.value = true
+    try {
+      const data = await api.getAnalysis(id)
+      currentAnalysis.value = data
+      return data
+    } catch (e: any) {
+      error.value = e.message || 'Failed to fetch analysis'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  function getJobById(id: string) {
+    return jobs.value.find(j => j.id === id)
   }
 
   function updateJobStatus(id: string, status: AnalysisJob['status'], step?: number) {
@@ -163,23 +206,11 @@ export const useAnalysisStore = defineStore('analysis', () => {
     }
   }
 
-  function addFilter(filter: FilterConfig) {
-    filters.value.push(filter)
-  }
-
-  function removeFilter(id: string) {
-    filters.value = filters.value.filter(f => f.id !== id)
-  }
-
   return {
-    jobs,
-    filters,
-    completedJobs,
-    runningJobs,
-    getJobById,
-    addJob,
-    updateJobStatus,
-    addFilter,
-    removeFilter
+    jobs, filters, currentAnalysis, progress, report, loading, error,
+    completedJobs, runningJobs,
+    startReverse, startForward, fetchProgress, fetchReport, fetchReplay,
+    cancel, fetchFilters, saveFilter, removeFilter, fetchAnalysis,
+    getJobById, updateJobStatus
   }
 })

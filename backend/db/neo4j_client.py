@@ -36,12 +36,16 @@ class Neo4jClient:
     async def connect(self):
         try:
             from neo4j import AsyncGraphDatabase
+            import asyncio
             self.driver = AsyncGraphDatabase.driver(self.uri, auth=(self.user, self.password))
+            # Verify connection with timeout
+            await asyncio.wait_for(self.driver.verify_connectivity(), timeout=10)
             logger.info("Neo4j connected")
         except ImportError:
             logger.warning("neo4j driver not installed, using mock mode")
         except Exception as e:
             logger.error(f"Neo4j connection failed: {e}")
+            self.driver = None
 
     async def disconnect(self):
         if self.driver:

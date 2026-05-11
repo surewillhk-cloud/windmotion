@@ -32,18 +32,20 @@ async def lifespan(app: FastAPI):
     neo = Neo4jClient()
     redis = RedisClient()
 
+    # Connect with timeouts to prevent startup hang
+    import asyncio
     try:
-        await pg.connect()
+        await asyncio.wait_for(pg.connect(), timeout=10)
     except Exception as e:
         logger.warning(f"PostgreSQL connection failed (will retry later): {e}")
 
     try:
-        await neo.connect()
+        await asyncio.wait_for(neo.connect(), timeout=10)
     except Exception as e:
         logger.warning(f"Neo4j connection failed (will retry later): {e}")
 
     try:
-        await redis.connect()
+        await asyncio.wait_for(redis.connect(), timeout=10)
     except Exception as e:
         logger.warning(f"Redis connection failed (will retry later): {e}")
 

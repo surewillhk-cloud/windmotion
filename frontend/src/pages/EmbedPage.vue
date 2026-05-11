@@ -185,9 +185,9 @@ const graphH = ref(300)
 const graphPanel = ref<HTMLElement>()
 const caseData = ref<any>(null)
 const stages = ref<any[]>([])
-let autoTimer: number
-let elapsedTimer: number
-let startTime: number
+let autoTimer: ReturnType<typeof setTimeout> | undefined
+let elapsedTimer: ReturnType<typeof setInterval> | undefined
+let startTime = 0
 
 // ── Stage name i18n ──
 const stageI18n: Record<string, Record<string, string>> = {
@@ -257,7 +257,7 @@ function advance() {
       const n = Math.min(currentStep.value * 4 + 4, graphNodes.value.length)
       for (let i = 0; i < n; i++) graphNodes.value[i].done = true
       currentStep.value++
-      autoTimer = window.setTimeout(advance, delay); return
+      autoTimer = setTimeout(advance, delay); return
     }
   }
   if (currentStage.value === 1 && stages.value[1]?.events) {
@@ -265,14 +265,14 @@ function advance() {
       currentEvent.value++
       const ei = currentEvent.value * 2
       if (ei < graphEdges.value.length) { graphEdges.value[ei].active = true; if (ei + 1 < graphEdges.value.length) graphEdges.value[ei + 1].active = true }
-      autoTimer = window.setTimeout(advance, delay * 1.5); return
+      autoTimer = setTimeout(advance, delay * 1.5); return
     }
   }
   if (currentStage.value < stages.value.length - 1) {
     currentStage.value++; currentStep.value = 0; currentEvent.value = -1
     graphNodes.value.forEach(n => { n.done = true; n.active = false })
     graphEdges.value.forEach(e => { e.done = e.active })
-    autoTimer = window.setTimeout(advance, delay)
+    autoTimer = setTimeout(advance, delay)
   } else { autoPlaying.value = false }
 }
 
@@ -326,7 +326,7 @@ onMounted(() => {
   loadCase()
   if (autoPlaying.value) setTimeout(() => advance(), 1000)
   startTime = Date.now()
-  elapsedTimer = window.setInterval(() => { const s = Math.floor((Date.now() - startTime) / 1000); elapsed.value = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` }, 1000)
+  elapsedTimer = setInterval(() => { const s = Math.floor((Date.now() - startTime) / 1000); elapsed.value = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` }, 1000)
   if (graphPanel.value) { graphW.value = graphPanel.value.clientWidth || 400; graphH.value = graphPanel.value.clientHeight || 300 }
   // ResizeObserver for responsive
   if (graphPanel.value && typeof ResizeObserver !== 'undefined') {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import * as api from '@/services/api'
 
 export interface AppSettings {
   language: string
@@ -14,36 +15,50 @@ export interface AppSettings {
   apiKey: string
 }
 
-export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref<AppSettings>({
-    language: 'zh-CN',
-    theme: 'dark',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    apiEndpoint: '/api',
-    wsEndpoint: '/ws',
-    refreshInterval: 30,
-    maxRetries: 3,
-    enableSound: true,
-    enableDesktopNotification: false,
-    apiKey: ''
-  })
+const defaultSettings: AppSettings = {
+  language: 'zh-CN',
+  theme: 'dark',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  apiEndpoint: '/api',
+  wsEndpoint: '/ws',
+  refreshInterval: 30,
+  maxRetries: 3,
+  enableSound: true,
+  enableDesktopNotification: false,
+  apiKey: ''
+}
 
+export const useSettingsStore = defineStore('settings', () => {
+  const settings = ref<AppSettings>({ ...defaultSettings })
   const isLoaded = ref(false)
 
+  // Load from localStorage first, then sync with backend
   function loadSettings() {
     try {
       const saved = localStorage.getItem('windmotion-settings')
       if (saved) {
-        const parsed = JSON.parse(saved)
-        settings.value = { ...settings.value, ...parsed }
+        settings.value = { ...defaultSettings, ...JSON.parse(saved) }
       }
     } catch (e) {
-      console.error('Failed to load settings:', e)
+      console.error('Failed to load settings from localStorage:', e)
     }
     isLoaded.value = true
   }
 
-  function saveSettings() {
+  // Sync settings with backend
+  async function syncFromServer() {
+    try {
+      const data = await api.getSettings()
+      if (data && typeof data === 'object') {
+        settings.value = { ...settings.value, ...data }
+        saveToLocal()
+      }
+    } catch {
+      // Backend might not be available yet - use local settings
+    }
+  }
+
+  function saveToLocal() {
     try {
       localStorage.setItem('windmotion-settings', JSON.stringify(settings.value))
     } catch (e) {
@@ -51,37 +66,34 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  async function saveSettings() {
+    saveToLocal()
+    try {
+      await api.updateSettings(settings.value)
+    } catch {
+      // Save locally even if backend fails
+    }
+  }
+
   function updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     settings.value[key] = value
-    saveSettings()
+    saveToLocal()
   }
 
   function resetSettings() {
-    settings.value = {
-      language: 'zh-CN',
-      theme: 'dark',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      apiEndpoint: '/api',
-      wsEndpoint: '/ws',
-      refreshInterval: 30,
-      maxRetries: 3,
-      enableSound: true,
-      enableDesktopNotification: false,
-      apiKey: ''
-    }
-    saveSettings()
+    settings.value = { ...defaultSettings }
+    saveToLocal()
   }
 
-  watch(settings, saveSettings, { deep: true })
+  // Auto-save on changes
+  watch(settings, saveToLocal, { deep: true })
 
+  // Initialize
   loadSettings()
 
   return {
-    settings,
-    isLoaded,
-    loadSettings,
-    saveSettings,
-    updateSetting,
-    resetSettings
+    settings, isLoaded,
+    loadSettings, saveSettings, syncFromServer,
+    updateSetting, resetSettings
   }
 })
