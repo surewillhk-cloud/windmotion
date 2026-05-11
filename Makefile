@@ -43,7 +43,7 @@ clean: ## Clean build artifacts
 	find . -name "*.pyc" -delete
 
 db-migrate: ## Run database migrations
-	cd backend && python -m alembic upgrade head
+	cd backend && python -m db.migrations.run_migrations
 
 db-reset: ## Reset databases (WARNING: destroys data)
 	docker compose down -v
