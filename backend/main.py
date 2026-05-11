@@ -15,6 +15,7 @@ logging.basicConfig(
     format='%(asctime)s [%(name)s] %(levelname)s: %(message)s'
 )
 logger = logging.getLogger("windmotion")
+logger.info(f"Starting on port {os.getenv('PORT', '8000')}")
 
 
 @asynccontextmanager

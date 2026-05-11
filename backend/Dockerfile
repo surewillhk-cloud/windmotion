@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE ${PORT:-8000}
 
-# Run migrations then start server
-CMD ["sh", "-c", "python -m backend.db.migrations.run_migrations && uvicorn backend.main:app --host 0.0.0.0 --port 8000"]
+# Run migrations then start server (use Railway's $PORT if set)
+CMD ["sh", "-c", "python -m backend.db.migrations.run_migrations && uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
