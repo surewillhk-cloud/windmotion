@@ -1,3 +1,0 @@
-# Railway config - per-service settings managed via Railway Dashboard
-# This file is for the monorepo default; each service overrides via Dashboard.
-# See RAILWAY-DEPLOY.md for full configuration guide.

@@ -1,9 +1,9 @@
 {
   "build": {
-    "cmd": "npm ci && npm run build"
+    "cmd": "cd frontend && npm ci && npm run build"
   },
   "aptPackages": ["nginx", "gettext-base"],
   "start": {
-    "cmd": "envsubst '${BACKEND_URL}' < /app/nginx.conf.template > /etc/nginx/conf.d/default.conf && cp -r /app/dist/. /usr/share/nginx/html/ && nginx -g 'daemon off;'"
+    "cmd": "envsubst '${BACKEND_URL}' < frontend/nginx.conf.template > /etc/nginx/conf.d/default.conf && cp -r frontend/dist/. /usr/share/nginx/html/ && nginx -g 'daemon off;'"
   }
 }
