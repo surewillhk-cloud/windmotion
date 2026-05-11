@@ -1,0 +1,35 @@
+{
+  "S1_CausalGraphBuild": {
+    "step1_draft": {"agent": "referee", "model_tier": "heavy"},
+    "step2_review": [
+      {"agent": "reviewer_a", "model_tier": "medium", "dimension": "omission"},
+      {"agent": "reviewer_b", "model_tier": "medium", "dimension": "direction"},
+      {"agent": "reviewer_c", "model_tier": "medium", "dimension": "variables"}
+    ],
+    "step3_merge": {"agent": "referee", "model_tier": "heavy"}
+  },
+  "S2_EventAnalyze": {
+    "min_agents_per_event": 3,
+    "activation_rules": {
+      "trade_event": ["chain_analyst", "token_analyst", "retail_a", "institutional"],
+      "social_event": ["social_a", "social_b", "retail_b"],
+      "macro_event": ["macro_analyst", "institutional", "chain_analyst"],
+      "liquidity_event": ["chain_analyst", "token_analyst", "retail_c"],
+      "default": ["chain_analyst", "token_analyst", "macro_analyst"]
+    }
+  },
+  "S3_ProbabilityPrice": {
+    "weight_map": {"B": 2.0, "C_institutional": 1.5, "C_others": 1.0},
+    "std_dev_threshold": 5
+  },
+  "S4_Deliberate": {
+    "required": ["most_divergent_pair"],
+    "optional": ["blind_spot_agents", "relevant_b_agents"],
+    "max_participants": 5,
+    "ruling_agent": "referee"
+  },
+  "S5_ReportGenerate": {
+    "report_author": "referee",
+    "narrative_author": "chain_analyst"
+  }
+}

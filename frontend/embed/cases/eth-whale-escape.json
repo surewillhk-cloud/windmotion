@@ -1,0 +1,76 @@
+{
+  "id": "eth-whale-escape",
+  "title": "ETH Whale Perfect Escape",
+  "title_zh": "ETH鲸鱼精准逃顶",
+  "description": "A whale sold 80% of their ETH holdings 2 days before a 30% crash.",
+  "token": "ETH",
+  "result": "Sold at $4,200 before crash to $2,900",
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Causal Graph Build",
+      "name_zh": "因果图谱构建",
+      "steps": [
+        {"agent": "Referee", "action": "Analyzing ETH whale with 2-year history...", "output": "22 entities, 28 causal paths", "duration_s": 45},
+        {"agent": "Reviewer A/B/C", "action": "Checking macro factors, on-chain signals", "output": "+5 macro paths, 2 direction fixes", "duration_s": 18},
+        {"agent": "Referee", "action": "Final merge with macro emphasis", "output": "41 nodes, 52 edges", "duration_s": 20}
+      ],
+      "total_duration_s": 83
+    },
+    {
+      "stage": 2,
+      "name": "Event Chain Analysis",
+      "name_zh": "事件链分析",
+      "events": [
+        {"id": "T1", "description": "ETH whale accumulates 2000 ETH over 6 months", "type": "trade"},
+        {"id": "T2", "description": "BTC hits all-time high, market euphoria", "type": "macro"},
+        {"id": "T3", "description": "Whale starts reducing position in 3 batches", "type": "trade"},
+        {"id": "T4", "description": "Whale sells final 80% at $4,200", "type": "trade"},
+        {"id": "T5", "description": "Market sentiment shifts, fear emerges", "type": "social"},
+        {"id": "T6", "description": "ETH crashes 30% to $2,900", "type": "macro"}
+      ],
+      "agent_reasoning": [
+        {"event": "T3", "agent": "Chain Analyst", "reasoning": "3-batch exit strategy. First batch at $3,800 (10%), second at $4,000 (10%), final at $4,200 (80%). Classic profit-taking.", "probability": 78},
+        {"event": "T3", "agent": "Macro Analyst", "reasoning": "BTC at ATH with declining RSI divergence. Historical pattern: correction follows within 2 weeks.", "probability": 75},
+        {"event": "T4", "agent": "Institutional", "reasoning": "Executing 80% exit at peak euphoria. This is textbook risk management. Very informed.", "probability": 82},
+        {"event": "T5", "agent": "Social B (Skeptic)", "reasoning": "Finally someone sees what I've been saying. Top is in.", "probability": 85}
+      ],
+      "probability_timeline": [
+        {"event": "T1", "aggregate": 55, "std_dev": 10},
+        {"event": "T2", "aggregate": 60, "std_dev": 12},
+        {"event": "T3", "aggregate": 72, "std_dev": 8},
+        {"event": "T4", "aggregate": 85, "std_dev": 6},
+        {"event": "T5", "aggregate": 88, "std_dev": 5},
+        {"event": "T6", "aggregate": 95, "std_dev": 3}
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Probability Pricing",
+      "name_zh": "概率定价",
+      "final_probability": 85.2,
+      "std_dev": 7.5,
+      "max_spread": 15
+    },
+    {
+      "stage": 4,
+      "name": "Deliberation",
+      "name_zh": "审议",
+      "triggered": false,
+      "trigger_reason": "High consensus, spread < 30%",
+      "rounds": [],
+      "ruling": "No deliberation needed. Strong consensus across all agents.",
+      "final_probability": 85.2
+    },
+    {
+      "stage": 5,
+      "name": "Report Generation",
+      "name_zh": "报告生成",
+      "conclusion": "Textbook exit execution. Whale demonstrated exceptional macro awareness and timing. 3-batch strategy reduced slippage. Pattern matches Top Catcher profile with high confidence.",
+      "confidence": "high",
+      "key_factors": ["Macro awareness", "Batch exit", "Euphoria detection", "Risk management"],
+      "total_duration_s": 380,
+      "total_cost_cny": 2.8
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "id": "cross-chain-hunter",
+  "title": "Cross-Chain Arbitrage Hunter",
+  "title_zh": "跨链套利猎手",
+  "description": "A whale bridged assets from ETH to BSC, bought a token 5 minutes before a major listing announcement.",
+  "token": "CAKE",
+  "result": "Bridging + timing = 4.5x in 48 hours",
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Causal Graph Build",
+      "name_zh": "因果图谱构建",
+      "steps": [
+        {"agent": "Referee", "action": "Analyzing cross-chain patterns...", "output": "18 entities, 24 paths identified", "duration_s": 38},
+        {"agent": "Reviewer A/B/C", "action": "Checking bridge mechanics, timing signals", "output": "+4 cross-chain paths, timing correlation found", "duration_s": 16},
+        {"agent": "Referee", "action": "Merging with cross-chain emphasis", "output": "35 nodes, 44 edges", "duration_s": 18}
+      ],
+      "total_duration_s": 72
+    },
+    {
+      "stage": 2,
+      "name": "Event Chain Analysis",
+      "name_zh": "事件链分析",
+      "events": [
+        {"id": "T1", "description": "Whale bridges 50 ETH from Ethereum to BSC", "type": "bridge"},
+        {"id": "T2", "description": "Converts ETH to BNB on BSC", "type": "trade"},
+        {"id": "T3", "description": "Buys 200 BNB of CAKE within 5 minutes", "type": "trade"},
+        {"id": "T4", "description": "PancakeSwap announces major partnership", "type": "social"},
+        {"id": "T5", "description": "CAKE price surges 4.5x", "type": "trade"},
+        {"id": "T6", "description": "Whale sells 70% position", "type": "trade"}
+      ],
+      "agent_reasoning": [
+        {"event": "T1", "agent": "Chain Analyst", "reasoning": "50 ETH bridged to BSC. Unusual: no DEX activity on ETH side. Pure cross-chain play.", "probability": 65},
+        {"event": "T3", "agent": "Chain Analyst", "reasoning": "200 BNB into CAKE within 5 min of bridge completion. Extremely aggressive timing.", "probability": 75},
+        {"event": "T4", "agent": "Token Analyst", "reasoning": "Partnership announcement validates the move. Insider timing suspected but unproven.", "probability": 80},
+        {"event": "T4", "agent": "Social B (Skeptic)", "reasoning": "Too perfect timing. Either insider or incredibly lucky. Suspicious.", "probability": 45}
+      ],
+      "probability_timeline": [
+        {"event": "T1", "aggregate": 50, "std_dev": 12},
+        {"event": "T2", "aggregate": 55, "std_dev": 10},
+        {"event": "T3", "aggregate": 68, "std_dev": 15},
+        {"event": "T4", "aggregate": 82, "std_dev": 10},
+        {"event": "T5", "aggregate": 88, "std_dev": 8},
+        {"event": "T6", "aggregate": 90, "std_dev": 5}
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Probability Pricing",
+      "name_zh": "概率定价",
+      "final_probability": 78.5,
+      "std_dev": 12.3,
+      "max_spread": 35
+    },
+    {
+      "stage": 4,
+      "name": "Deliberation",
+      "name_zh": "审议",
+      "triggered": true,
+      "trigger_reason": "Spread > 30% between Token Analyst (80%) and Social B (45%)",
+      "rounds": [
+        {
+          "round": 1,
+          "challenges": [
+            {"from": "Chain Analyst", "to": "Social B", "challenge": "Bridge-to-buy timing is suspicious but the profit is real. Focus on outcomes."},
+            {"from": "Social B", "to": "Chain Analyst", "challenge": "Promoting insider trading as alpha? Ethics matter."}
+          ]
+        },
+        {
+          "round": 2,
+          "responses": [
+            {"agent": "Chain Analyst", "response": "Not promoting. Analyzing. The pattern exists regardless of ethics. Adjusting to 76%."},
+            {"agent": "Social B", "response": "Fair distinction. Adjusting to 50%. Still flagging risk."}
+          ]
+        }
+      ],
+      "ruling": "Cross-chain pattern is legitimate alpha signal. Timing correlation is high. Ethical concerns noted but separate from analysis. Final: 78.5%",
+      "final_probability": 78.5
+    },
+    {
+      "stage": 5,
+      "name": "Report Generation",
+      "name_zh": "报告生成",
+      "conclusion": "Cross-chain Hunter pattern confirmed. Whale used bridge mechanics to position before announcement. High probability of informed trading. Pattern: Cross-Chain Hunter + Sniper hybrid.",
+      "confidence": "medium-high",
+      "key_factors": ["Bridge timing", "Speed of execution", "Information advantage", "Exit discipline"],
+      "total_duration_s": 445,
+      "total_cost_cny": 3.5
+    }
+  ]
+}

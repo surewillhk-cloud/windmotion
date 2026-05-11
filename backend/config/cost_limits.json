@@ -1,0 +1,11 @@
+{
+  "single_analysis_max_cny": 10,
+  "daily_budget_cny": 100,
+  "monthly_budget_cny": 3000,
+  "model_costs_per_1k_tokens": {
+    "deepseek-r1": {"input": 0.04, "output": 0.16},
+    "deepseek-v3": {"input": 0.002, "output": 0.008},
+    "qwen-turbo": {"input": 0.001, "output": 0.002},
+    "qwen-max": {"input": 0.02, "output": 0.06}
+  }
+}

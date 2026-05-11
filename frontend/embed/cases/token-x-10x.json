@@ -1,0 +1,93 @@
+{
+  "id": "token-x-10x",
+  "title": "TOKEN_X 10x Run",
+  "title_zh": "TOKEN_X 10倍行情",
+  "description": "A whale spotted TOKEN_X early, rode it to 10x, and exited near the top.",
+  "token": "TOKEN_X",
+  "result": "$50K → $500K in 23 days",
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Causal Graph Build",
+      "name_zh": "因果图谱构建",
+      "steps": [
+        {"agent": "Referee", "action": "Generating draft...", "output": "15 entities, 19 causal paths", "duration_s": 40},
+        {"agent": "Reviewer A/B/C", "action": "Parallel review", "output": "+3 paths, 1 fixed, +2 vars", "duration_s": 15},
+        {"agent": "Referee", "action": "Merging", "output": "32 nodes, 39 edges", "duration_s": 15}
+      ],
+      "total_duration_s": 70
+    },
+    {
+      "stage": 2,
+      "name": "Event Chain Analysis",
+      "name_zh": "事件链分析",
+      "events": [
+        {"id": "T1", "description": "TOKEN_X listed on PancakeSwap", "type": "trade"},
+        {"id": "T2", "description": "First whale accumulation detected", "type": "trade"},
+        {"id": "T3", "description": "Target whale buys 50 BNB of TOKEN_X", "type": "trade"},
+        {"id": "T4", "description": "Social media buzz begins", "type": "social"},
+        {"id": "T5", "description": "More whales enter", "type": "trade"},
+        {"id": "T6", "description": "Retail FOMO wave", "type": "social"}
+      ],
+      "agent_reasoning": [
+        {"event": "T3", "agent": "Chain Analyst", "reasoning": "0xabc purchased 50 BNB. First position. 25% portfolio. Smart sizing.", "probability": 72},
+        {"event": "T3", "agent": "Institutional", "reasoning": "Small position. Testing waters. Conservative entry.", "probability": 68},
+        {"event": "T4", "agent": "Social A (Bullish)", "reasoning": "Community growing fast! Next 100x!", "probability": 85},
+        {"event": "T4", "agent": "Social B (Skeptic)", "reasoning": "No product. Pump and dump.", "probability": 35}
+      ],
+      "probability_timeline": [
+        {"event": "T1", "aggregate": 45, "std_dev": 8},
+        {"event": "T2", "aggregate": 55, "std_dev": 10},
+        {"event": "T3", "aggregate": 62, "std_dev": 12},
+        {"event": "T4", "aggregate": 74, "std_dev": 18},
+        {"event": "T5", "aggregate": 78, "std_dev": 15},
+        {"event": "T6", "aggregate": 72, "std_dev": 20}
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Probability Pricing",
+      "name_zh": "概率定价",
+      "final_probability": 72.8,
+      "std_dev": 15.2,
+      "max_spread": 50
+    },
+    {
+      "stage": 4,
+      "name": "Deliberation",
+      "name_zh": "审议",
+      "triggered": true,
+      "trigger_reason": "Max spread > 30%",
+      "rounds": [
+        {
+          "round": 1,
+          "challenges": [
+            {"from": "Chain Analyst", "to": "Social B", "challenge": "Ignores $500K liquidity depth and growing holder count."},
+            {"from": "Institutional", "to": "Social A", "challenge": "No working product = no long-term value."},
+            {"from": "Social A", "to": "Social B", "challenge": "Market doesn't care about fundamentals in early meme cycles."}
+          ]
+        },
+        {
+          "round": 2,
+          "responses": [
+            {"agent": "Social B", "response": "Fair point on liquidity. Adjusting 35% → 42%."},
+            {"agent": "Social A", "response": "Agree on long-term risk. Adjusting 85% → 75%."},
+            {"agent": "Chain Analyst", "response": "Liquidity supports thesis. Maintaining 72%."}
+          ]
+        }
+      ],
+      "ruling": "Liquidity path strengthened. Social hype as short-term catalyst. Final: 72.8%",
+      "final_probability": 72.8
+    },
+    {
+      "stage": 5,
+      "name": "Report Generation",
+      "name_zh": "报告生成",
+      "conclusion": "TOKEN_X shows strong early-stage characteristics with informed whale accumulation. Short-term catalyst: social momentum. Risk: no working product. Recommended: small position with tight stop.",
+      "confidence": "medium-high",
+      "key_factors": ["Early entry", "Smart sizing", "Social catalyst", "Liquidity depth"],
+      "total_duration_s": 423,
+      "total_cost_cny": 3.2
+    }
+  ]
+}

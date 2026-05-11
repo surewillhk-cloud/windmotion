@@ -1,0 +1,25 @@
+{
+  "analysis_modes": {
+    "fast": {"phases": ["R0", "R1"], "target_time_s": 30},
+    "standard": {"phases": ["R0", "R1", "R2", "R3"], "target_time_s": 120},
+    "deep": {"phases": ["R0", "R1", "R2", "R3", "R4", "R5"], "target_time_s": 300}
+  },
+  "concurrent_limit": 3,
+  "cache_days": 7,
+  "decision_node_types": [
+    "INITIAL_BUY", "ADD_POSITION", "REDUCE", "EXIT",
+    "HOLD", "STOP_LOSS", "LEVERAGE", "BRIDGE", "LP_JOIN", "LP_EXIT"
+  ],
+  "hold_detection": {
+    "unrealized_profit_threshold_pct": 100,
+    "unrealized_loss_threshold_pct": 30,
+    "drawdown_threshold_pct": 20
+  },
+  "factor_weights": {
+    "F1_entry_timing": {"sub_factors": ["price_vs_30d", "price_vs_ath", "listing_days", "market_cap_at_buy"]},
+    "F2_exit_timing": {"sub_factors": ["sell_vs_ath", "price_change_30d_after", "batch_selling", "decisiveness"]},
+    "F3_position_management": {"sub_factors": ["initial_position_pct", "batch_building", "add_logic", "max_position", "drawdown_behavior"]},
+    "F4_token_selection": {"sub_factors": ["listing_days", "market_cap", "holder_growth", "liquidity", "narrative", "security"]},
+    "F5_behavior_pattern": {"sub_factors": ["trade_frequency", "leverage_usage", "defi_participation", "fund_flow", "mev"]}
+  }
+}

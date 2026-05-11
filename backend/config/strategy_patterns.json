@@ -1,0 +1,84 @@
+{
+  "patterns": [
+    {
+      "id": "early_bird",
+      "name": "Early Bird",
+      "name_zh": "早期发现者",
+      "conditions": {"F1_min": 4.0, "token_listing_days_max": 7},
+      "avg_roi_multiplier": 5.2,
+      "description": "在Token上线早期发现并介入"
+    },
+    {
+      "id": "top_catcher",
+      "name": "Top Catcher",
+      "name_zh": "精准逃顶",
+      "conditions": {"F2_min": 4.0, "sell_above_ath_pct": 80},
+      "avg_roi_multiplier": 3.8,
+      "description": "在接近最高点时精准卖出"
+    },
+    {
+      "id": "dca_master",
+      "name": "DCA Master",
+      "name_zh": "定投大师",
+      "conditions": {"F3_min": 4.0, "min_batches": 3},
+      "avg_roi_multiplier": 2.5,
+      "description": "通过分批建仓降低成本"
+    },
+    {
+      "id": "diamond_hands",
+      "name": "Diamond Hands",
+      "name_zh": "钻石手",
+      "conditions": {"hold_count_min": 3, "drawdown_tolerance_pct": 30},
+      "avg_roi_multiplier": 4.1,
+      "description": "在大幅回撤中坚持持有"
+    },
+    {
+      "id": "leverage_player",
+      "name": "Leverage Player",
+      "name_zh": "杠杆玩家",
+      "conditions": {"borrow_count_min": 2},
+      "avg_roi_multiplier": 6.0,
+      "description": "使用借贷放大收益"
+    },
+    {
+      "id": "lp_farmer",
+      "name": "LP Farmer",
+      "name_zh": "流动性矿工",
+      "conditions": {"lp_count_min": 2},
+      "avg_roi_multiplier": 1.8,
+      "description": "通过提供流动性获取收益"
+    },
+    {
+      "id": "cross_chain_hunter",
+      "name": "Cross-Chain Hunter",
+      "name_zh": "跨链猎手",
+      "conditions": {"bridge_count_min": 1},
+      "avg_roi_multiplier": 3.2,
+      "description": "跨链寻找套利机会"
+    },
+    {
+      "id": "meme_hunter",
+      "name": "Meme Hunter",
+      "name_zh": "Meme猎手",
+      "conditions": {"meme_token_pct_min": 50},
+      "avg_roi_multiplier": 8.0,
+      "description": "专注Meme币投机"
+    },
+    {
+      "id": "defi_native",
+      "name": "DeFi Native",
+      "name_zh": "DeFi原住民",
+      "conditions": {"defi_protocol_count_min": 5},
+      "avg_roi_multiplier": 2.2,
+      "description": "深度参与多种DeFi协议"
+    },
+    {
+      "id": "sniper",
+      "name": "Sniper",
+      "name_zh": "抢跑者",
+      "conditions": {"first_buy_hours_after_listing_max": 24},
+      "avg_roi_multiplier": 7.5,
+      "description": "在Token上线后极短时间内买入"
+    }
+  ]
+}

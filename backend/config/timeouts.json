@@ -1,0 +1,29 @@
+{
+  "phase_timeouts": {
+    "phase_0_data_prep": 60,
+    "phase_1_graph_build": 120,
+    "phase_2_event_chain": 180,
+    "phase_3_deliberation": 120,
+    "phase_4_review": 30,
+    "phase_5_report": 120
+  },
+  "skill_timeouts": {
+    "S1_CausalGraphBuild": 120,
+    "S2_EventAnalyze": 30,
+    "S3_ProbabilityPrice": 20,
+    "S4_Deliberate": 120,
+    "S5_ReportGenerate": 120,
+    "S6_WhaleScreen": 60,
+    "S7_FactorReverse": 60,
+    "S8_GraphSync": 10,
+    "S9_ContextManage": 10,
+    "S10_ModelRoute": 5,
+    "S11_DataFetch": 30,
+    "S12_PriceOracle": 10
+  },
+  "global_timeout": 600,
+  "circuit_breaker": {
+    "consecutive_failures": 3,
+    "cooldown_s": 30
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "tiers": {
+    "heavy": {
+      "primary": {"provider": "deepseek", "model": "deepseek-r1", "timeout_s": 60},
+      "fallback": {"provider": "alibaba", "model": "qwen-max", "timeout_s": 60}
+    },
+    "medium": {
+      "primary": {"provider": "deepseek", "model": "deepseek-v3", "timeout_s": 20},
+      "fallback": {"provider": "alibaba", "model": "qwen-max", "timeout_s": 20}
+    },
+    "light": {
+      "primary": {"provider": "alibaba", "model": "qwen-turbo", "timeout_s": 8},
+      "fallback": {"provider": "deepseek", "model": "deepseek-v3", "timeout_s": 8}
+    }
+  },
+  "task_mapping": {
+    "graph_draft": "heavy",
+    "graph_review": "medium",
+    "graph_merge": "heavy",
+    "b_agent_reasoning": "medium",
+    "c_agent_reasoning": "light",
+    "probability_pricing": "medium",
+    "deliberation_challenge": "medium",
+    "deliberation_ruling": "heavy",
+    "report_generation": "heavy",
+    "narrative_generation": "medium",
+    "context_compression": "light",
+    "strategy_tagging": "light"
+  }
+}

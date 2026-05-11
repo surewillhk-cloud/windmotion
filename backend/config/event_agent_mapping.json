@@ -1,0 +1,9 @@
+{
+  "mappings": {
+    "trade_event": ["chain_analyst", "token_analyst", "retail_a", "institutional"],
+    "social_event": ["social_a", "social_b", "retail_b"],
+    "macro_event": ["macro_analyst", "institutional", "chain_analyst"],
+    "liquidity_event": ["chain_analyst", "token_analyst", "retail_c"],
+    "default": ["chain_analyst", "token_analyst", "macro_analyst"]
+  }
+}

@@ -1,0 +1,16 @@
+@keyframes heartbeat-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 229, 255, 0.2); }
+  25% { box-shadow: 0 0 16px rgba(0, 229, 255, 0.5); }
+  50% { box-shadow: 0 0 8px rgba(0, 229, 255, 0.2); }
+  75% { box-shadow: 0 0 12px rgba(0, 229, 255, 0.4); }
+}
+
+@keyframes data-pulse {
+  0% { color: var(--text-primary); text-shadow: none; }
+  50% { color: var(--accent); text-shadow: 0 0 10px rgba(0, 229, 255, 0.5); }
+  100% { color: var(--text-primary); text-shadow: none; }
+}
+
+.value-changed {
+  animation: data-pulse 0.3s ease;
+}

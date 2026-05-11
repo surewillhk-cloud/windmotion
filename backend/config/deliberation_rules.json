@@ -1,0 +1,22 @@
+{
+  "trigger_conditions": {
+    "probability_change_threshold": 15,
+    "max_spread_threshold": 30,
+    "consecutive_blind_spot_ratio": 0.5
+  },
+  "suppression": {
+    "min_events_since_last": 1,
+    "min_events_remaining": 1
+  },
+  "rounds": {
+    "round_1": {"type": "challenge", "description": "质疑式表态"},
+    "round_2": {"type": "response", "description": "回应式定价"}
+  },
+  "validation": {
+    "prediction_accurate_pct": 70,
+    "prediction_deviant_pct": 25,
+    "prediction_wrong_pct": 5,
+    "deviant_republish_delay_s": 15,
+    "wrong_rerun_delay_s": 30
+  }
+}
