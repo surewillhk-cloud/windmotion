@@ -106,7 +106,7 @@ app.add_middleware(
 )
 
 # Import and register routes
-from backend.api.routes import whale, filter, analysis, reverse, replay, history, embed, settings
+from backend.api.routes import whale, filter, analysis, reverse, replay, history, embed, settings, recommend
 from backend.api.websocket import progress, graph_update, feed
 
 app.include_router(whale.router)
@@ -117,6 +117,7 @@ app.include_router(replay.router)
 app.include_router(history.router)
 app.include_router(embed.router)
 app.include_router(settings.router)
+app.include_router(recommend.router)
 app.include_router(progress.router)
 app.include_router(graph_update.router)
 app.include_router(feed.router)

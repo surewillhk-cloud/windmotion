@@ -1,5 +1,6 @@
 """History API routes."""
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/api/history", tags=["history"])
 
@@ -79,3 +80,29 @@ async def get_whale_library(
     total = count_row["cnt"] if count_row else 0
 
     return {"whales": rows, "total": total, "page": page}
+
+
+@router.post("/whale-library")
+async def add_to_whale_library(request: Request):
+    """Add a whale address to the library."""
+    pg = request.app.state.pg
+    body = await request.json()
+    address = body.get("address")
+    nickname = body.get("nickname", "")
+    notes = body.get("notes", "")
+    tags = body.get("tags", [])
+
+    if not address:
+        raise HTTPException(400, "Address is required")
+
+    now = datetime.now(timezone.utc)
+    await pg.execute(
+        """
+        INSERT INTO whale_library (address, chain, nickname, notes, tags, added_at)
+        VALUES ($1, 'bsc', $2, $3, $4, $5)
+        ON CONFLICT (address, chain) DO UPDATE
+        SET nickname = $2, notes = $3, tags = $4
+        """,
+        address, nickname, notes, tags, now,
+    )
+    return {"status": "added", "address": address}

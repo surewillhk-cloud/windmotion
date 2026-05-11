@@ -51,11 +51,11 @@ export async function getWhaleDetail(address: string) {
 }
 
 export async function startReverseAnalysis(address: string, mode = 'deep') {
-  return api.post(`/whales/${address}/reverse`, { mode })
+  return api.post(`/whales/${address}/analyze`, null, { params: { mode } })
 }
 
 export async function startForwardInference(address: string) {
-  return api.post(`/whales/${address}/forward`)
+  return api.post(`/whales/${address}/infer`)
 }
 
 // ── Filter endpoints ──
@@ -106,17 +106,17 @@ export async function getHistory(page = 1, limit = 20) {
 }
 
 // ── Whale Library ──
-export async function getWhaleLibrary() {
-  return api.get('/library')
+export async function getWhaleLibrary(page = 1, limit = 20) {
+  return api.get('/history/whale-library', { params: { page, limit } })
 }
 
 export async function addToLibrary(address: string, nickname?: string) {
-  return api.post('/library', { address, nickname })
+  return api.post('/history/whale-library', { address, nickname })
 }
 
 // ── Recommendations ──
 export async function getRecommendations() {
-  return api.get('/recommendations')
+  return api.get('/recommend')
 }
 
 // ── Settings ──
