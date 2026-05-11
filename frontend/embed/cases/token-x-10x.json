@@ -11,9 +11,9 @@
       "name": "Causal Graph Build",
       "name_zh": "因果图谱构建",
       "steps": [
-        {"agent": "Referee", "action": "Generating draft...", "output": "15 entities, 19 causal paths", "duration_s": 40},
-        {"agent": "Reviewer A/B/C", "action": "Parallel review", "output": "+3 paths, 1 fixed, +2 vars", "duration_s": 15},
-        {"agent": "Referee", "action": "Merging", "output": "32 nodes, 39 edges", "duration_s": 15}
+        {"agent": "Referee", "action": "Generating draft...", "output": "15 entities, 19 causal paths identified", "duration_s": 40},
+        {"agent": "Reviewer A/B/C", "action": "Parallel review", "output": "+3 paths, 1 direction fixed, +2 variables", "duration_s": 15},
+        {"agent": "Referee", "action": "Merging and confirming", "output": "Final: 32 nodes, 39 edges", "duration_s": 15}
       ],
       "total_duration_s": 70
     },
@@ -30,10 +30,10 @@
         {"id": "T6", "description": "Retail FOMO wave", "type": "social"}
       ],
       "agent_reasoning": [
-        {"event": "T3", "agent": "Chain Analyst", "reasoning": "0xabc purchased 50 BNB. First position. 25% portfolio. Smart sizing.", "probability": 72},
-        {"event": "T3", "agent": "Institutional", "reasoning": "Small position. Testing waters. Conservative entry.", "probability": 68},
-        {"event": "T4", "agent": "Social A (Bullish)", "reasoning": "Community growing fast! Next 100x!", "probability": 85},
-        {"event": "T4", "agent": "Social B (Skeptic)", "reasoning": "No product. Pump and dump.", "probability": 35}
+        {"event": "T3", "agent": "Chain Analyst", "reasoning": "0xabc purchased 50 BNB of TOKEN_X. First position. 25% of portfolio. Smart sizing.", "probability": 72},
+        {"event": "T3", "agent": "Institutional", "reasoning": "Small position. Testing the waters. Conservative entry typical of informed buyer.", "probability": 68},
+        {"event": "T4", "agent": "Social A (Bullish KOL)", "reasoning": "TOKEN_X is getting attention! Community is growing fast. This could be the next 100x.", "probability": 85},
+        {"event": "T4", "agent": "Social B (Skeptic)", "reasoning": "Hype without substance. No working product. Likely a pump and dump.", "probability": 35}
       ],
       "probability_timeline": [
         {"event": "T1", "aggregate": 45, "std_dev": 8},
@@ -57,33 +57,33 @@
       "name": "Deliberation",
       "name_zh": "审议",
       "triggered": true,
-      "trigger_reason": "Max spread > 30%",
+      "trigger_reason": "Max spread > 30% between Social A (85%) and Social B (35%)",
       "rounds": [
         {
           "round": 1,
           "challenges": [
-            {"from": "Chain Analyst", "to": "Social B", "challenge": "Ignores $500K liquidity depth and growing holder count."},
-            {"from": "Institutional", "to": "Social A", "challenge": "No working product = no long-term value."},
-            {"from": "Social A", "to": "Social B", "challenge": "Market doesn't care about fundamentals in early meme cycles."}
+            {"from": "Chain Analyst", "to": "Social B", "challenge": "Ignores $500K liquidity depth and growing holder count. Skepticism without data."},
+            {"from": "Social A", "to": "Social B", "challenge": "Working product or not, the market doesn't care about fundamentals in early meme cycles."},
+            {"from": "Institutional", "to": "Social A", "challenge": "No working product = no long-term value. Hype cycles end."}
           ]
         },
         {
           "round": 2,
           "responses": [
-            {"agent": "Social B", "response": "Fair point on liquidity. Adjusting 35% → 42%."},
-            {"agent": "Social A", "response": "Agree on long-term risk. Adjusting 85% → 75%."},
-            {"agent": "Chain Analyst", "response": "Liquidity supports thesis. Maintaining 72%."}
+            {"agent": "Social B", "response": "Fair point on liquidity. Adjusting from 35% to 42%. Still cautious on fundamentals."},
+            {"agent": "Social A", "response": "Agree on long-term risk. Short-term momentum is real though. Adjusting from 85% to 75%."},
+            {"agent": "Chain Analyst", "response": "Liquidity and holder growth support thesis. Maintaining 72%."}
           ]
         }
       ],
-      "ruling": "Liquidity path strengthened. Social hype as short-term catalyst. Final: 72.8%",
+      "ruling": "Liquidity path strengthened. Social hype acknowledged as short-term catalyst. Final: 72.8%",
       "final_probability": 72.8
     },
     {
       "stage": 5,
       "name": "Report Generation",
       "name_zh": "报告生成",
-      "conclusion": "TOKEN_X shows strong early-stage characteristics with informed whale accumulation. Short-term catalyst: social momentum. Risk: no working product. Recommended: small position with tight stop.",
+      "conclusion": "TOKEN_X shows strong early-stage characteristics with informed whale accumulation. Short-term catalyst: social momentum. Risk: no working product. Recommended action: small position with tight stop.",
       "confidence": "medium-high",
       "key_factors": ["Early entry", "Smart sizing", "Social catalyst", "Liquidity depth"],
       "total_duration_s": 423,

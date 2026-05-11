@@ -1,0 +1,21 @@
+{
+  "prompt_templates": {
+    "reasoning": {
+      "zh-CN": "请基于你的角色立场，分析此事件对预测目标的影响。\n\n你的身份：{role_description}\n你的立场：{stance}\n\n请注意你的认知偏见：{cognitive_biases}\n\n请输出以下JSON格式：\n{\n  \"causal_analysis\": \"你的因果分析...\",\n  \"probability_estimate\": 65,\n  \"reasoning_chain\": [\"步骤1\", \"步骤2\"],\n  \"self_check\": {\n    \"deviation\": \"可能的偏离点\",\n    \"blind_spot\": \"可能的盲点\",\n    \"counter_evidence\": \"反面证据\"\n  },\n  \"confidence\": \"高/中/低\"\n}",
+      "en": "Based on your role stance, analyze the impact of this event on the prediction target.\n\nYour identity: {role_description}\nYour stance: {stance}\n\nBe aware of your cognitive biases: {cognitive_biases}\n\nOutput in JSON:\n{\n  \"causal_analysis\": \"Your causal analysis...\",\n  \"probability_estimate\": 65,\n  \"reasoning_chain\": [\"step1\", \"step2\"],\n  \"self_check\": {\n    \"deviation\": \"Possible deviation\",\n    \"blind_spot\": \"Possible blind spot\",\n    \"counter_evidence\": \"Counter evidence\"\n  },\n  \"confidence\": \"high/medium/low\"\n}",
+      "th": "กรุณาวิเคราะห์ผลกระทบของเหตุการณ์นี้ต่อเป้าหมายการคาดการณ์\n\nตัวตนของคุณ: {role_description}\nจุดยืน: {stance}\n\nระวังอคติ: {cognitive_biases}\n\nผลลัพธ์เป็น JSON:\n{\n  \"causal_analysis\": \"...\",\n  \"probability_estimate\": 65,\n  \"reasoning_chain\": [],\n  \"self_check\": { \"deviation\": \"\", \"blind_spot\": \"\", \"counter_evidence\": \"\" },\n  \"confidence\": \"high/medium/low\"\n}",
+      "ko": "당신의 역할 입장을 기반으로 이 이벤트가 예측 목표에 미치는 영향을 분석하세요.\n\n정체성: {role_description}\n입장: {stance}\n\n인지 편향: {cognitive_biases}\n\nJSON 형식으로 출력:\n{\n  \"causal_analysis\": \"...\",\n  \"probability_estimate\": 65,\n  \"reasoning_chain\": [],\n  \"self_check\": { \"deviation\": \"\", \"blind_spot\": \"\", \"counter_evidence\": \"\" },\n  \"confidence\": \"high/medium/low\"\n}",
+      "ja": "あなたの役割の立場に基づき、このイベントが予測目標に与える影響を分析してください。\n\nアイデンティティ: {role_description}\n立場: {stance}\n\n認知バイアス: {cognitive_biases}\n\nJSON形式で出力:\n{\n  \"causal_analysis\": \"...\",\n  \"probability_estimate\": 65,\n  \"reasoning_chain\": [],\n  \"self_check\": { \"deviation\": \"\", \"blind_spot\": \"\", \"counter_evidence\": \"\" },\n  \"confidence\": \"high/medium/low\"\n}",
+      "vi": "Dựa trên vai trò của bạn, hãy phân tích tác động của sự kiện này đến mục tiêu dự đoán.\n\nDanh tính: {role_description}\nLập trường: {stance}\n\nThiên kiến nhận thức: {cognitive_biases}\n\nXuất dạng JSON:\n{\n  \"causal_analysis\": \"...\",\n  \"probability_estimate\": 65,\n  \"reasoning_chain\": [],\n  \"self_check\": { \"deviation\": \"\", \"blind_spot\": \"\", \"counter_evidence\": \"\" },\n  \"confidence\": \"high/medium/low\"\n}"
+    },
+    "challenge": {
+      "zh-CN": "## 任务：质疑对方的观点\n\n你是 {agent_name}，你的立场是 {stance}。\n\n对方（{target_agent}）的概率估计是 {target_probability}%。\n你的概率估计是 {self_probability}%。\n\n请找出对方分析中的逻辑漏洞。\n\n输出JSON：\n{\n  \"challenge_point\": \"核心质疑点\",\n  \"evidence\": \"支持你质疑的证据\",\n  \"suggested_adjustment\": \"建议对方如何调整\"\n}",
+      "en": "## Challenge the opposing view\n\nYou are {agent_name}, stance: {stance}.\n\nTarget ({target_agent}) estimates {target_probability}%.\nYou estimate {self_probability}%.\n\nFind logical flaws in their analysis.\n\nOutput JSON:\n{\n  \"challenge_point\": \"Core challenge\",\n  \"evidence\": \"Supporting evidence\",\n  \"suggested_adjustment\": \"Suggested adjustment\"\n}"
+    },
+    "self_check": {
+      "zh-CN": "## 自检要求\n\n你的概率估计: {self_probability}%\n其他参与者的估计:\n{others_summary}\n\n请回答：\n1. 偏差原因分析\n2. 遗漏的信息\n3. 认知偏见检查\n\n输出JSON：\n{\n  \"deviation_analysis\": \"偏差分析\",\n  \"blind_spots\": [\"盲点1\"],\n  \"bias_check\": \"偏见检查\",\n  \"adjusted_probability\": 65,\n  \"adjustment_reason\": \"调整原因\"\n}",
+      "en": "## Self-check\n\nYour estimate: {self_probability}%\nOthers:\n{others_summary}\n\nAnswer:\n1. Deviation analysis\n2. Missing information\n3. Bias check\n\nOutput JSON:\n{\n  \"deviation_analysis\": \"...\",\n  \"blind_spots\": [],\n  \"bias_check\": \"...\",\n  \"adjusted_probability\": 65,\n  \"adjustment_reason\": \"...\"\n}"
+    }
+  },
+  "supported_languages": ["zh-CN", "zh-TW", "en", "th", "ko", "ja", "vi"]
+}

@@ -131,7 +131,116 @@ class FactorReverse(BaseSkill):
         if classified_txs.get("lp_removes", 0) > 0:
             nodes.append({"type": "LP_EXIT", "count": classified_txs["lp_removes"]})
 
+        # HOLD node detection (implicit decisions) per design doc §11.2
+        hold_nodes = self._detect_hold_nodes(classified_txs, price_data)
+        nodes.extend(hold_nodes)
+
         return nodes
+
+    def _detect_hold_nodes(self, classified_txs: Dict, price_data: Dict) -> List[Dict]:
+        """
+        Detect implicit HOLD decisions per design doc:
+        - 浮盈 > 100% 时未卖 (unrealized profit > 100% and didn't sell)
+        - 浮亏 > 30% 时未割 (unrealized loss > 30% and didn't cut)
+        - 价格创新高时未卖 (price hit new ATH and didn't sell)
+        - 回调 > 20% 时未割 (drawdown > 20% and didn't cut)
+        """
+        hold_nodes = []
+        hold_config = self.reverse_config.get("hold_detection", {})
+        profit_threshold = hold_config.get("unrealized_profit_threshold_pct", 100)
+        loss_threshold = hold_config.get("unrealized_loss_threshold_pct", 30)
+        drawdown_threshold = hold_config.get("drawdown_threshold_pct", 20)
+
+        prices = price_data.get("historical_prices", [])
+        if not prices or not isinstance(prices, list):
+            return hold_nodes
+
+        # Track position entry price and ATH
+        entry_price = None
+        ath_price = 0
+        hold_count = 0
+
+        for i, price_point in enumerate(prices):
+            price = price_point.get("price", 0) if isinstance(price_point, dict) else price_point
+            if price <= 0:
+                continue
+
+            # Update ATH
+            if price > ath_price:
+                ath_price = price
+
+            # Detect entry (first buy)
+            if entry_price is None and classified_txs.get("buys", 0) > 0:
+                entry_price = price
+                continue
+
+            if entry_price is None:
+                continue
+
+            # Calculate unrealized P&L
+            unrealized_pnl_pct = ((price - entry_price) / entry_price) * 100
+
+            # Rule 1: 浮盈 > 100% 时未卖
+            if unrealized_pnl_pct > profit_threshold:
+                hold_count += 1
+                hold_nodes.append({
+                    "type": "HOLD",
+                    "subtype": "unrealized_profit",
+                    "reason": f"浮盈 {unrealized_pnl_pct:.0f}% 时未卖出",
+                    "reason_en": f"Held with {unrealized_pnl_pct:.0f}% unrealized profit",
+                    "price_at_point": price,
+                    "unrealized_pnl_pct": round(unrealized_pnl_pct, 1),
+                    "significance": "high" if unrealized_pnl_pct > 200 else "medium"
+                })
+
+            # Rule 2: 浮亏 > 30% 时未割
+            if unrealized_pnl_pct < -loss_threshold:
+                hold_count += 1
+                hold_nodes.append({
+                    "type": "HOLD",
+                    "subtype": "unrealized_loss",
+                    "reason": f"浮亏 {abs(unrealized_pnl_pct):.0f}% 时未割肉",
+                    "reason_en": f"Held through {abs(unrealized_pnl_pct):.0f}% unrealized loss",
+                    "price_at_point": price,
+                    "unrealized_pnl_pct": round(unrealized_pnl_pct, 1),
+                    "significance": "high" if abs(unrealized_pnl_pct) > 50 else "medium"
+                })
+
+            # Rule 3: 价格创新高时未卖
+            if price >= ath_price * 0.99 and unrealized_pnl_pct > 50:
+                # Check if this is near ATH
+                hold_nodes.append({
+                    "type": "HOLD",
+                    "subtype": "ath_hold",
+                    "reason": f"价格接近ATH时未卖出",
+                    "reason_en": "Held at near-ATH price",
+                    "price_at_point": price,
+                    "ath_price": ath_price,
+                    "significance": "high"
+                })
+
+            # Rule 4: 回调 > 20% 时未割
+            if ath_price > 0:
+                drawdown_pct = ((ath_price - price) / ath_price) * 100
+                if drawdown_pct > drawdown_threshold:
+                    hold_nodes.append({
+                        "type": "HOLD",
+                        "subtype": "drawdown_hold",
+                        "reason": f"从ATH回调 {drawdown_pct:.0f}% 时未割肉",
+                        "reason_en": f"Held through {drawdown_pct:.0f}% drawdown from ATH",
+                        "price_at_point": price,
+                        "drawdown_pct": round(drawdown_pct, 1),
+                        "significance": "high" if drawdown_pct > 40 else "medium"
+                    })
+
+        # Deduplicate: keep only the most significant hold of each subtype
+        seen_subtypes = {}
+        for node in hold_nodes:
+            st = node["subtype"]
+            if st not in seen_subtypes or node.get("significance") == "high":
+                seen_subtypes[st] = node
+
+        return list(seen_subtypes.values())
 
     def _analyze_entry_timing(self, nodes: List[Dict], price_data: Dict, config: Dict) -> Dict:
         sub_factors = config.get("sub_factors", [])

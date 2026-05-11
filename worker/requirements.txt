@@ -1,0 +1,24 @@
+# Wind Motion Worker - Dependencies
+# Shares base deps with backend, plus worker-specific packages
+
+# ── Core ──────────────────────────────────────────────────
+redis[hiredis]>=5.0.0
+asyncpg>=0.29.0
+neo4j>=5.14.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+
+# ── LLM ───────────────────────────────────────────────────
+openai>=1.6.0
+httpx>=0.25.0
+
+# ── Blockchain ────────────────────────────────────────────
+web3>=6.11.0
+eth-abi>=4.2.0
+
+# ── Monitoring ────────────────────────────────────────────
+prometheus-client>=0.19.0
+
+# ── Task specific ─────────────────────────────────────────
+numpy>=1.26.0
+pandas>=2.1.0
