@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAnalysisStore } from '@/stores/analysis'
@@ -244,7 +244,6 @@ function applyWSData(data: any) {
 }
 
 // Watch for WS updates
-import { watch } from 'vue'
 watch(wsProgress, (val) => { if (val) applyWSData(val) })
 watch(graphUpdate, (val) => { if (val) graphStore.applyGraphUpdate(val) })
 watch(wsStatus, (val) => {
