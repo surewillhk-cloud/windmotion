@@ -3,6 +3,8 @@
     <div class="process-header">
       <h1 class="page-title glow-text">{{ t('analysis.title') || 'Forward Analysis' }}</h1>
       <span class="target-addr mono-number">{{ address }}</span>
+      <span v-if="wsConnected" class="ws-badge connected">● LIVE</span>
+      <span v-else class="ws-badge">○ Connecting...</span>
     </div>
 
     <StepIndicator :steps="steps" :current="currentStep" />
@@ -12,7 +14,7 @@
       <div v-show="currentStep === 0" class="step-content">
         <h2>Causal Graph Construction</h2>
         <div class="graph-area">
-          <Neo4jGraph :graph-data="graphData" @nodeClick="onNodeClick" />
+          <Neo4jGraph :graph-data="displayGraph" @nodeClick="onNodeClick" />
           <GraphLegend />
         </div>
         <div v-if="selectedNode" class="node-detail">
@@ -97,9 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { useAnalysisStore } from '@/stores/analysis'
+import { useGraphStore } from '@/stores/graph'
+import { useAnalysisWS } from '@/services/ws'
 import StepIndicator from '@/components/analysis/StepIndicator.vue'
 import Neo4jGraph from '@/components/graph/Neo4jGraph.vue'
 import GraphLegend from '@/components/graph/GraphLegend.vue'
@@ -113,7 +118,14 @@ import GlowButton from '@/components/common/GlowButton.vue'
 
 const { t } = useI18n()
 const route = useRoute()
-const address = route.params.address as string || '0x...'
+const analysisStore = useAnalysisStore()
+const graphStore = useGraphStore()
+
+const address = computed(() => (route.params.address || route.params.id) as string || '0x...')
+const analysisId = computed(() => route.params.id as string || '')
+
+// WebSocket for live progress
+const { progress: wsProgress, status: wsStatus, graphUpdate, isConnected: wsConnected } = useAnalysisWS(analysisId.value)
 
 const currentStep = ref(0)
 const activeEvent = ref(0)
@@ -127,21 +139,26 @@ const steps = [
   { label: 'Report', key: 'report' }
 ]
 
-const graphData = ref({
-  nodes: [
-    { id: 'n1', label: 'Whale Entry', type: 'event' },
-    { id: 'n2', label: 'Token Volume', type: 'factor' },
-    { id: 'n3', label: 'Social Signal', type: 'variable' },
-    { id: 'n4', label: 'Price Impact', type: 'result' },
-    { id: 'n5', label: 'Exit Timing', type: 'decision' }
-  ],
-  edges: [
-    { source: 'n1', target: 'n2', strength: 'strong', verified: true },
-    { source: 'n2', target: 'n4', strength: 'medium', verified: true },
-    { source: 'n3', target: 'n4', strength: 'weak', verified: false },
-    { source: 'n1', target: 'n5', strength: 'medium', verified: true },
-    { source: 'n5', target: 'n4', strength: 'strong', verified: false }
-  ]
+// Use real graph data from store, fallback to defaults
+const displayGraph = computed(() => {
+  const g = graphStore.currentGraph
+  if (g.nodes.length > 0) return g
+  return {
+    nodes: [
+      { id: 'n1', label: 'Whale Entry', type: 'event' },
+      { id: 'n2', label: 'Token Volume', type: 'factor' },
+      { id: 'n3', label: 'Social Signal', type: 'variable' },
+      { id: 'n4', label: 'Price Impact', type: 'result' },
+      { id: 'n5', label: 'Exit Timing', type: 'decision' }
+    ],
+    edges: [
+      { source: 'n1', target: 'n2', strength: 'strong', verified: true },
+      { source: 'n2', target: 'n4', strength: 'medium', verified: true },
+      { source: 'n3', target: 'n4', strength: 'weak', verified: false },
+      { source: 'n1', target: 'n5', strength: 'medium', verified: true },
+      { source: 'n5', target: 'n4', strength: 'strong', verified: false }
+    ]
+  }
 })
 
 const events = ref([
@@ -211,13 +228,60 @@ const report = ref({
 function onNodeClick(node: any) {
   selectedNode.value = node
 }
+
+// Update data from WebSocket progress
+function applyWSData(data: any) {
+  if (!data) return
+  if (data.step !== undefined) currentStep.value = data.step
+  if (data.events) events.value = data.events
+  if (data.probability) {
+    finalProb.value = data.probability.final ?? finalProb.value
+    stdDev.value = data.probability.std_dev ?? stdDev.value
+    maxSpread.value = data.probability.spread ?? maxSpread.value
+  }
+  if (data.deliberation) deliberation.value = { ...deliberation.value, ...data.deliberation }
+  if (data.report) report.value = { ...report.value, ...data.report }
+}
+
+// Watch for WS updates
+import { watch } from 'vue'
+watch(wsProgress, (val) => { if (val) applyWSData(val) })
+watch(graphUpdate, (val) => { if (val) graphStore.applyGraphUpdate(val) })
+watch(wsStatus, (val) => {
+  if (val === 'completed') currentStep.value = 4
+})
+
+onMounted(async () => {
+  // Fetch analysis data if ID exists
+  if (analysisId.value) {
+    try {
+      const data = await analysisStore.fetchAnalysis(analysisId.value)
+      if (data) {
+        if (data.step !== undefined) currentStep.value = data.step
+        if (data.graph) graphStore.updateGraph(data.graph)
+        if (data.events) events.value = data.events
+        if (data.report) report.value = { ...report.value, ...data.report }
+      }
+    } catch { /* use defaults */ }
+  }
+  // Connect graph store to live updates
+  if (analysisId.value) {
+    graphStore.connectLiveUpdates(analysisId.value)
+  }
+})
+
+onUnmounted(() => {
+  graphStore.disconnectLiveUpdates()
+})
 </script>
 
 <style scoped>
 .analysis-process { padding: 24px; max-width: 1200px; margin: 0 auto; }
-.process-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.process-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
 .page-title { font-size: 24px; font-family: var(--font-mono); color: var(--accent); margin: 0; }
 .target-addr { font-size: 14px; color: var(--text-muted); }
+.ws-badge { font-size: 10px; color: var(--text-muted); }
+.ws-badge.connected { color: #00ff88; }
 .process-content { min-height: 400px; margin: 20px 0; }
 .step-content h2 { font-size: 18px; color: var(--text-primary); margin-bottom: 16px; }
 .graph-area { margin-bottom: 16px; }

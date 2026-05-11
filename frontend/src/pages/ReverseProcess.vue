@@ -3,6 +3,8 @@
     <div class="process-header">
       <h1 class="page-title glow-text">{{ t('reverse.title') || 'Reverse Inference' }}</h1>
       <span class="target-addr mono-number">{{ address }}</span>
+      <span v-if="wsConnected" class="ws-badge connected">● LIVE</span>
+      <span v-else class="ws-badge">○ Connecting...</span>
     </div>
 
     <StepIndicator :steps="steps" :current="currentStep" />
@@ -58,22 +60,19 @@
         <h2>Conclusion</h2>
         <div class="conclusion-card glow-card">
           <div class="conc-header">
-            <span class="conc-verdict" :style="{ color: '#00ff88' }">INFORMED TRADER</span>
-            <span class="conc-confidence mono-number">72% confidence</span>
+            <span class="conc-verdict" :style="{ color: '#00ff88' }">{{ conclusion.verdict }}</span>
+            <span class="conc-confidence mono-number">{{ conclusion.confidence }}% confidence</span>
           </div>
-          <p class="conc-text">This whale demonstrates informed trading behavior with strong entry timing and position sizing. Pattern matches historical "smart money accumulation" with 82% similarity.</p>
+          <p class="conc-text">{{ conclusion.summary }}</p>
           <div class="conc-factors">
             <h3>Key Findings</h3>
             <ul>
-              <li>Entry timing: Bought during low-volatility consolidation</li>
-              <li>Position sizing: 25% of portfolio — aggressive but calculated</li>
-              <li>Exit strategy: Staged exit near local top</li>
-              <li>Social timing: Entered before social buzz peaked</li>
+              <li v-for="(finding, i) in conclusion.findings" :key="i">{{ finding }}</li>
             </ul>
           </div>
           <div class="conc-reco">
             <h3>Recommendation</h3>
-            <p>Follow this whale's next moves. Set alerts for their next large purchase.</p>
+            <p>{{ conclusion.recommendation }}</p>
           </div>
         </div>
       </div>
@@ -89,9 +88,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { useAnalysisStore } from '@/stores/analysis'
+import { useAnalysisWS } from '@/services/ws'
 import StepIndicator from '@/components/analysis/StepIndicator.vue'
 import PatternCard from '@/components/reverse/PatternCard.vue'
 import FactorRadar from '@/components/reverse/FactorRadar.vue'
@@ -104,7 +105,13 @@ import GlowButton from '@/components/common/GlowButton.vue'
 
 const { t } = useI18n()
 const route = useRoute()
-const address = route.params.address as string || '0x...'
+const analysisStore = useAnalysisStore()
+
+const address = computed(() => (route.params.address || route.params.id) as string || '0x...')
+const analysisId = computed(() => route.params.id as string || '')
+
+// WebSocket for live progress
+const { progress: wsProgress, status: wsStatus, isConnected: wsConnected } = useAnalysisWS(analysisId.value)
 
 const currentStep = ref(0)
 const selectedPattern = ref('')
@@ -124,7 +131,7 @@ const patterns = ref([
   { name: 'DCA Strategy', description: 'Dollar-cost averaging over time', match_pct: 45, tags: ['consistency', 'risk-mgmt'], historical: { win_rate: 62, samples: 203 } }
 ])
 
-const factorScores = ref({ F1: 4.2, F2: 3.5, F3: 3.8, F4: 2.9, F5: 1.8 })
+const factorScores = ref<Record<string, number>>({ F1: 4.2, F2: 3.5, F3: 3.8, F4: 2.9, F5: 1.8 })
 
 const envState = ref({
   market_trend: 'bullish',
@@ -158,13 +165,57 @@ const delibRounds = ref([
     { agent: 'Behavior Score', response: 'Low F5 is due to limited social data. On-chain behavior is strong. Adjusting to 2.5.' }
   ]}
 ])
+
+const conclusion = ref({
+  verdict: 'INFORMED TRADER',
+  confidence: 72,
+  summary: 'This whale demonstrates informed trading behavior with strong entry timing and position sizing. Pattern matches historical "smart money accumulation" with 82% similarity.',
+  findings: [
+    'Entry timing: Bought during low-volatility consolidation',
+    'Position sizing: 25% of portfolio — aggressive but calculated',
+    'Exit strategy: Staged exit near local top',
+    'Social timing: Entered before social buzz peaked'
+  ],
+  recommendation: 'Follow this whale\'s next moves. Set alerts for their next large purchase.'
+})
+
+// Apply WebSocket data
+function applyWSData(data: any) {
+  if (!data) return
+  if (data.step !== undefined) currentStep.value = data.step
+  if (data.patterns) patterns.value = data.patterns
+  if (data.factor_scores) factorScores.value = data.factor_scores
+  if (data.environment) envState.value = { ...envState.value, ...data.environment }
+  if (data.rounds) roundData.value = data.rounds
+  if (data.deliberation) {
+    if (data.deliberation.rounds) delibRounds.value = data.deliberation.rounds
+  }
+  if (data.conclusion) conclusion.value = { ...conclusion.value, ...data.conclusion }
+}
+
+watch(wsProgress, (val) => { if (val) applyWSData(val) })
+watch(wsStatus, (val) => {
+  if (val === 'completed') currentStep.value = 4
+})
+
+onMounted(async () => {
+  // Try to fetch existing analysis data
+  if (analysisId.value) {
+    try {
+      const data = await analysisStore.fetchAnalysis(analysisId.value)
+      if (data) applyWSData(data)
+    } catch { /* use defaults */ }
+  }
+})
 </script>
 
 <style scoped>
 .reverse-process { padding: 24px; max-width: 1200px; margin: 0 auto; }
-.process-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.process-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
 .page-title { font-size: 24px; font-family: var(--font-mono); color: var(--accent); margin: 0; }
 .target-addr { font-size: 14px; color: var(--text-muted); }
+.ws-badge { font-size: 10px; color: var(--text-muted); }
+.ws-badge.connected { color: #00ff88; }
 .process-content { min-height: 400px; margin: 20px 0; }
 .step-content h2 { font-size: 18px; color: var(--text-primary); margin-bottom: 16px; }
 .patterns-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }

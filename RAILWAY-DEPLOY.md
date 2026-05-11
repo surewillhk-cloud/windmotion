@@ -127,7 +127,7 @@ python -m backend.db.migrations.run_migrations && uvicorn backend.main:app --hos
 
 | 变量 | 值 | 来源 |
 |------|-----|------|
-| `BACKEND_URL` | `http://backend.railway.internal:8000` | 内部通信 |
+| `BACKEND_URL` | `http://backend.railway.internal:8080` | 内部通信 |
 | `VITE_API_BASE` | `https://${{Backend.RAILWAY_PUBLIC_DOMAIN}}` | 构建时注入（可选） |
 
 **Dockerfile 路径：** `frontend/Dockerfile`
