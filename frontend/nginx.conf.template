@@ -18,8 +18,7 @@ server {
 
     # API proxy to backend (Railway internal network)
     # Set BACKEND_URL env var in Railway frontend service
-    # Example: http://backend.railway.internal:8000
-    # IMPORTANT: BACKEND_URL must NOT have trailing slash
+    # Example: http://backend.railway.internal:8080
     location /api/ {
         proxy_pass ${BACKEND_URL}/api/;
         proxy_set_header Host $host;

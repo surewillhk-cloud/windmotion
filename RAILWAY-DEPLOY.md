@@ -83,7 +83,7 @@ REDISHOST / REDISPORT / REDISPASSWORD
 | `BSCSCAN_API_KEY` | `xxx` | 手动填写 |
 | `CORS_ORIGINS` | `https://${{Frontend.RAILWAY_PUBLIC_DOMAIN}}` | Railway 变量引用 |
 | `FRONTEND_URL` | `https://${{Frontend.RAILWAY_PUBLIC_DOMAIN}}` | Railway 变量引用 |
-| `PORT` | `8000` | Railway 自动提供，Dockerfile 中使用 `$PORT` |
+| `PORT | `8080`` | Railway 自动提供，Dockerfile 中使用 `$PORT` |
 
 > ⚠️ **NEO4J_PASSWORD 说明：** Railway 无法直接拆分 `NEO4J_AUTH` 的密码部分。
 > 建议在 Neo4j 服务中额外添加一个自定义变量 `NEO4J_PASSWORD`（值与 `NEO4J_AUTH` 中的密码一致），
@@ -199,7 +199,7 @@ Frontend → Backend:   内部域名（不经过公网）
 - Root Directory: `/frontend`
 - Watch Paths: `src/**`, `public/**`, `package.json`, `vite.config.ts`
 - Dockerfile Path: `Dockerfile`
-- 设置 `BACKEND_URL=http://backend.railway.internal:8000`
+- 设置 `BACKEND_URL=http://backend.railway.internal:8080`
 - 设置 Health Check Path: `/health`（nginx 已配置返回 200）
 
 ### Step5: 验证连通性
