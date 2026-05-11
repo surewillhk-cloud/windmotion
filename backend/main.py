@@ -54,10 +54,17 @@ app = FastAPI(
 )
 
 # CORS - allow configured origins + common dev/production patterns
-allowed_origins = os.getenv(
+cors_raw = os.getenv(
     "CORS_ORIGINS",
     "http://localhost:3000,http://localhost:5173,http://localhost:8080"
-).split(",")
+)
+
+# Support both JSON array and comma-separated formats
+import json as _json
+try:
+    allowed_origins = _json.loads(cors_raw) if cors_raw.strip().startswith("[") else [o.strip() for o in cors_raw.split(",")]
+except _json.JSONDecodeError:
+    allowed_origins = [o.strip() for o in cors_raw.split(",")]
 
 # Also allow any *.railway.app or *.up.railway.app in production
 if os.getenv("RAILWAY_PUBLIC_DOMAIN"):
