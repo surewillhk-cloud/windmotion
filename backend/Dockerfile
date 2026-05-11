@@ -15,4 +15,4 @@ COPY . .
 EXPOSE ${PORT:-8000}
 
 # Run migrations then start server (use Railway's $PORT if set)
-CMD ["sh", "-c", "python -m backend.db.migrations.run_migrations && uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python -m backend.db.migrations.run_migrations || echo 'Migration skipped/failed' && uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
