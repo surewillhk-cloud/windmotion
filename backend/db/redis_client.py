@@ -77,6 +77,24 @@ class RedisClient:
     async def get_cached_whale(self, address: str) -> Optional[Dict]:
         return await self.get_json(f"whale:{address}")
 
+    async def lpush(self, key: str, *values: str):
+        """Push one or more values onto the head of a list."""
+        if self.client:
+            return await self.client.lpush(key, *values)
+        return None
+
+    async def rpop(self, key: str) -> Optional[str]:
+        """Pop a value from the tail of a list."""
+        if self.client:
+            return await self.client.rpop(key)
+        return None
+
+    async def lrange(self, key: str, start: int = 0, stop: int = -1) -> list:
+        """Get a range of elements from a list."""
+        if self.client:
+            return await self.client.lrange(key, start, stop)
+        return []
+
     async def add_to_feed(self, event: Dict):
         """Add event to the real-time feed stream."""
         if self.client:
