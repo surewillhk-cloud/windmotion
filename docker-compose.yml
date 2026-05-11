@@ -58,6 +58,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       
+      ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:-}
       BSCSCAN_API_KEY: ${BSCSCAN_API_KEY:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,https://frontend-production-196a6.up.railway.app}
     ports:
@@ -86,6 +87,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       
+      ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:-}
       BSCSCAN_API_KEY: ${BSCSCAN_API_KEY:-}
       WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-3}
       TASK_TIMEOUT: ${TASK_TIMEOUT:-600}

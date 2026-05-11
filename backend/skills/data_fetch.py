@@ -1,7 +1,7 @@
 """S11: Data Fetch - Fetches on-chain and market data from external sources.
 
 Integrates with:
-  - ChainScanner (BscScan API) for on-chain data
+  - ChainScanner (Etherscan API V2) for on-chain data
   - PriceOracle (DeFiLlama) for token prices
 """
 import json

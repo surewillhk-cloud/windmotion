@@ -212,7 +212,7 @@ class ChainScanner:
         return all_large_txs
 
     async def get_token_info(self, token_address: str) -> Optional[Dict]:
-        """Get basic token info via BscScan token supply endpoint.
+        """Get basic token info via Etherscan V2 token supply endpoint.
 
         Returns supply info; for full metadata (name, symbol, decimals),
         combine with on-chain contract calls.
