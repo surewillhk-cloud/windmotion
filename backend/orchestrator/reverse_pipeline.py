@@ -8,6 +8,7 @@ from backend.orchestrator.timeout import TimeoutManager
 from backend.orchestrator.ws_progress import WSProgressManager
 from backend.agents.pool import AgentPool
 from backend.skills.model_route import ModelRouter
+from backend.services.llm_client import LLMClient, create_llm_caller
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +17,17 @@ class ReversePipeline:
     """Orchestrates the reverse inference pipeline (Phase R0-R5)."""
 
     def __init__(self, agent_pool: AgentPool, model_router: ModelRouter,
-                 ws_manager: WSProgressManager, timeout_config: Dict):
+                 ws_manager: WSProgressManager, timeout_config: Dict,
+                 llm_client: Optional[LLMClient] = None):
         self.agents = agent_pool
         self.model_router = model_router
         self.ws = ws_manager
         self.timeout_mgr = TimeoutManager(timeout_config)
         self.phase_manager = PhaseManager(self.timeout_mgr.phase_timeouts)
+
+        # LLM client and caller for skill injection
+        self.llm_client = llm_client or LLMClient()
+        self.llm_caller = create_llm_caller(self.llm_client, model_router)
 
     async def run(self, analysis_id: str, inputs: Dict) -> Dict:
         """Execute the reverse inference pipeline."""
@@ -215,6 +221,9 @@ class ReversePipeline:
             "factor_scores": inputs.get("r3", {}).get("factor_scores", {}),
             "matched_patterns": inputs.get("r4", {}).get("matched_patterns", []),
             "format": "reverse"
+        }, context={
+            "agent_pool": self.agents,
+            "llm_caller": self.llm_caller,
         })
 
         return result.data if result.success else {"report": {}}

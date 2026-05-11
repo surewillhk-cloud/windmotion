@@ -31,6 +31,7 @@ from backend.db.neo4j_client import Neo4jClient
 from backend.db.redis_client import RedisClient
 from backend.agents.pool import AgentPool
 from backend.skills.model_route import ModelRouter
+from backend.services.llm_client import LLMClient, create_llm_caller
 
 logger = logging.getLogger("windmotion.worker")
 
@@ -103,6 +104,10 @@ class Worker:
         logger.info(f"Agent pool ready ({len(self.agent_pool.agents)} agents)")
 
         self.model_router = ModelRouter()
+
+        self.llm_client = LLMClient()
+        self.llm_caller = create_llm_caller(self.llm_client, self.model_router)
+        logger.info("LLM client ready (OpenRouter)")
         logger.info("Model router ready")
 
         self.semaphore = asyncio.Semaphore(MAX_CONCURRENT)
@@ -201,6 +206,7 @@ class Worker:
                 "neo4j": self.neo4j,
                 "agent_pool": self.agent_pool,
                 "model_router": self.model_router,
+                "llm_caller": self.llm_caller,
                 "publish_progress": lambda pct, msg: asyncio.ensure_future(
                     self._publish_progress(task_id, task_type, "running", pct, msg)
                 ),

@@ -10,6 +10,7 @@ from backend.orchestrator.async_handler import AsyncHandler
 from backend.orchestrator.ws_progress import WSProgressManager
 from backend.agents.pool import AgentPool
 from backend.skills.model_route import ModelRouter
+from backend.services.llm_client import LLMClient, create_llm_caller
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,8 @@ class ForwardPipeline:
     """Orchestrates the forward inference pipeline (Phase 0-5)."""
 
     def __init__(self, agent_pool: AgentPool, model_router: ModelRouter,
-                 ws_manager: WSProgressManager, timeout_config: Dict):
+                 ws_manager: WSProgressManager, timeout_config: Dict,
+                 llm_client: Optional[LLMClient] = None):
         self.agents = agent_pool
         self.model_router = model_router
         self.ws = ws_manager
@@ -26,6 +28,10 @@ class ForwardPipeline:
         self.async_handler = AsyncHandler()
         self.phase_manager = PhaseManager(self.timeout_mgr.phase_timeouts)
         self.results: Dict = {}
+
+        # LLM client and caller for skill injection
+        self.llm_client = llm_client or LLMClient()
+        self.llm_caller = create_llm_caller(self.llm_client, model_router)
 
     async def run(self, analysis_id: str, inputs: Dict) -> Dict:
         """Execute the full forward inference pipeline."""
@@ -148,7 +154,11 @@ class ForwardPipeline:
             },
             "target": inputs.get("target", "profitability"),
             "constraints": {}
-        }, context={"agent_pool": self.agents, "model_router": self.model_router})
+        }, context={
+            "agent_pool": self.agents,
+            "model_router": self.model_router,
+            "llm_caller": self.llm_caller,
+        })
 
         if not result.success:
             raise Exception(f"Graph build failed: {result.error}")
@@ -185,7 +195,10 @@ class ForwardPipeline:
                     "graph_snapshot": graph,
                     "context": context,
                     "activated_agents": activated
-                }, context={"agent_pool": self.agents})
+                }, context={
+                    "agent_pool": self.agents,
+                    "llm_caller": self.llm_caller,
+                })
 
                 if result.success:
                     group_results.append(result.data)
@@ -237,7 +250,11 @@ class ForwardPipeline:
             "graph_snapshot": inputs.get("graph", {}),
             "participants": ["chain_analyst", "token_analyst", "retail_a", "institutional"],
             "context": inputs.get("context", "")
-        }, context={"agent_pool": self.agents, "model_router": self.model_router})
+        }, context={
+            "agent_pool": self.agents,
+            "model_router": self.model_router,
+            "llm_caller": self.llm_caller,
+        })
 
         return {
             "triggered": True,
@@ -282,7 +299,10 @@ class ForwardPipeline:
             "deliberation_records": inputs.get("deliberation", {}).get("records", {}),
             "review_output": inputs.get("review", {}),
             "format": inputs.get("format", "full")
-        }, context={"agent_pool": self.agents})
+        }, context={
+            "agent_pool": self.agents,
+            "llm_caller": self.llm_caller,
+        })
 
         return result.data if result.success else {"report": {}, "narrative": {}}
 

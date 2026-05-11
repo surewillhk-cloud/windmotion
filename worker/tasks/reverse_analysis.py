@@ -121,7 +121,7 @@ async def execute(payload: Dict, context: Dict) -> Dict[str, Any]:
             "patterns": patterns,
             "participants": ["factor_analyst", "behavior_score", "pattern_matcher"],
             "context": ""
-        }, context={"agent_pool": agent_pool, "model_router": model_router})
+        }, context={"agent_pool": agent_pool, "model_router": model_router, "llm_caller": context["llm_caller"]})
 
         results["step_4"] = {
             "triggered": True,
@@ -142,7 +142,7 @@ async def execute(payload: Dict, context: Dict) -> Dict[str, Any]:
         "rounds": round_details,
         "deliberation": results["step_4"],
         "format": payload.get("format", "full")
-    }, context={"agent_pool": agent_pool})
+    }, context={"agent_pool": agent_pool, "llm_caller": context["llm_caller"]})
 
     results["step_5"] = report_result.data if report_result.success else {}
 

@@ -1,16 +1,18 @@
 {
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
   "tiers": {
     "heavy": {
-      "primary": {"provider": "deepseek", "model": "deepseek-r1", "timeout_s": 60},
-      "fallback": {"provider": "alibaba", "model": "qwen-max", "timeout_s": 60}
+      "primary": {"provider": "openrouter", "model": "deepseek/deepseek-r1", "timeout_s": 60},
+      "fallback": {"provider": "openrouter", "model": "deepseek/deepseek-chat-v3-0324", "timeout_s": 60}
     },
     "medium": {
-      "primary": {"provider": "deepseek", "model": "deepseek-v3", "timeout_s": 20},
-      "fallback": {"provider": "alibaba", "model": "qwen-max", "timeout_s": 20}
+      "primary": {"provider": "openrouter", "model": "deepseek/deepseek-chat-v3-0324", "timeout_s": 20},
+      "fallback": {"provider": "openrouter", "model": "qwen/qwen-max", "timeout_s": 20}
     },
     "light": {
-      "primary": {"provider": "alibaba", "model": "qwen-turbo", "timeout_s": 8},
-      "fallback": {"provider": "deepseek", "model": "deepseek-v3", "timeout_s": 8}
+      "primary": {"provider": "openrouter", "model": "qwen/qwen-turbo-latest", "timeout_s": 8},
+      "fallback": {"provider": "openrouter", "model": "deepseek/deepseek-chat-v3-0324", "timeout_s": 8}
     }
   },
   "task_mapping": {
