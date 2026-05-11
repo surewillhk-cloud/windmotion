@@ -6,6 +6,7 @@
   "buildAptPackages": ["gcc", "libpq-dev"],
   "steps": {
     "install": {
+      "inputs": [{"local": true, "include": ["backend/requirements.txt", "worker/requirements.txt"]}],
       "commands": [
         "pip install -r backend/requirements.txt",
         "pip install -r worker/requirements.txt"
@@ -15,8 +16,8 @@
   "deploy": {
     "startCommand": "python -m worker.main",
     "inputs": [
-      { "step": "install" },
-      { "local": true, "include": ["backend/", "worker/"] }
+      {"step": "install"},
+      {"local": true, "include": ["backend/", "worker/"]}
     ]
   }
 }
