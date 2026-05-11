@@ -1,0 +1,9 @@
+{
+  "build": {
+    "cmd": "npm ci && npm run build"
+  },
+  "aptPackages": ["nginx", "gettext-base"],
+  "start": {
+    "cmd": "envsubst '${BACKEND_URL}' < /app/nginx.conf.template > /etc/nginx/conf.d/default.conf && cp -r /app/dist/. /usr/share/nginx/html/ && nginx -g 'daemon off;'"
+  }
+}
