@@ -1,0 +1,26 @@
+# nixpacks.toml — Frontend 服务（Root Directory = "/frontend"）
+# Nixpacks 构建 Vue 3 SPA，nginx 运行时服务（支持 API 反向代理 + WS + SPA fallback）
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "nginx", "gettext"]  # gettext 提供 envsubst 命令
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = [
+  "npm run build",
+  # 把需要的文件复制到 /app 供启动脚本使用
+  "mkdir -p /app",
+  "cp -r dist /app/dist",
+  "cp nginx.conf.template /app/nginx.conf.template",
+  "cp start.sh /app/start.sh",
+  "chmod +x /app/start.sh",
+  # 清空 nginx 默认配置（防止冲突）
+  "rm -f /etc/nginx/conf.d/default.conf",
+  # 把 dist 复制到 nginx 默认 webroot
+  "cp -r dist/. /usr/share/nginx/html/",
+]
+
+[start]
+cmd = "/app/start.sh"

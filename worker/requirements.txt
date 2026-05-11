@@ -1,5 +1,11 @@
 # Wind Motion Worker - Dependencies
-# Shares base deps with backend, plus worker-specific packages
+# Worker 直接导入 backend.* 模块，因此也需要 backend 的依赖
+
+# ── Backend 核心（worker 导入 backend.* 需要）────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+websockets==12.0
 
 # ── Core ──────────────────────────────────────────────────
 redis[hiredis]>=5.0.0
