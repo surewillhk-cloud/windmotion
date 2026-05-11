@@ -1,8 +1,0 @@
-# Nixpacks config - fallback for Railway
-# Per-service overrides via NIXPACKS_* env vars
-
-[phases.build]
-cmds = ["echo 'Using env vars for build'"]
-
-[phases.start]
-cmd = "echo 'Using env vars for start'"
