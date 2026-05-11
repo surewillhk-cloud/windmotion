@@ -83,20 +83,30 @@ class Worker:
         )
         logger.info(f"Starting {self.worker_id} (concurrency={MAX_CONCURRENT})")
 
-        # Connect to Redis
-        self.redis = aioredis.from_url(REDIS_URL, decode_responses=True)
-        await self.redis.ping()
-        logger.info("Redis connected")
+        # Connect to Redis (required for task queue)
+        try:
+            self.redis = aioredis.from_url(REDIS_URL, decode_responses=True)
+            await self.redis.ping()
+            logger.info("Redis connected")
+        except Exception as e:
+            logger.error(f"Redis connection failed: {e}")
+            raise
 
-        # Connect to PostgreSQL
-        self.pg = PostgresClient(DATABASE_URL)
-        await self.pg.connect()
-        logger.info("PostgreSQL connected")
+        # Connect to PostgreSQL (non-fatal)
+        try:
+            self.pg = PostgresClient(DATABASE_URL)
+            await self.pg.connect()
+            logger.info("PostgreSQL connected")
+        except Exception as e:
+            logger.warning(f"PostgreSQL connection failed (will retry later): {e}")
 
-        # Connect to Neo4j
-        self.neo4j = Neo4jClient(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
-        await self.neo4j.connect()
-        logger.info("Neo4j connected")
+        # Connect to Neo4j (non-fatal)
+        try:
+            self.neo4j = Neo4jClient(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
+            await self.neo4j.connect()
+            logger.info("Neo4j connected")
+        except Exception as e:
+            logger.warning(f"Neo4j connection failed (will retry later): {e}")
 
         # Initialize agent pool and model router
         self.agent_pool = AgentPool()
@@ -289,6 +299,25 @@ class Worker:
 
 
 # ─── Entry Point ────────────────────────────────────────────────
+async def health_server():
+    """Simple HTTP health check for Railway."""
+    from aiohttp import web
+
+    async def handle(request):
+        return web.Response(text='{"status":"ok"}', content_type='application/json')
+
+    app = web.Application()
+    app.router.add_get('/health', handle)
+    app.router.add_get('/', handle)
+
+    port = int(os.getenv('PORT', '8080'))
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logger.info(f"Health server listening on port {port}")
+
+
 async def main():
     worker = Worker()
     loop = asyncio.get_event_loop()
@@ -296,6 +325,9 @@ async def main():
     # Graceful shutdown on SIGTERM/SIGINT
     for sig in (signal.SIGTERM, signal.SIGINT):
         loop.add_signal_handler(sig, lambda: asyncio.create_task(worker.stop()))
+
+    # Start health check server
+    await health_server()
 
     await worker.start()
     await worker.consume()
