@@ -20,6 +20,7 @@
     "online": "線上",
     "offline": "離線",
     "viewAll": "查看全部",
+    "newFilter": "新建過濾器",
     "noRecentActivity": "暫無最近活動"
   },
   "filter": {
@@ -86,6 +87,7 @@
   },
   "common": {
     "loading": "載入中...",
+    "analyze": "分析",
     "error": "錯誤",
     "noData": "暫無資料",
     "export": "匯出",
@@ -248,5 +250,17 @@
     "pause": "暫停",
     "reset": "重設",
     "speed": "速度"
+  },
+  "history": {
+    "title": "歷史分析記錄"
+  },
+  "replay": {
+    "title": "交易回放"
+  },
+  "results": {
+    "title": "篩選結果"
+  },
+  "whales": {
+    "title": "鯨魚庫"
   }
 }

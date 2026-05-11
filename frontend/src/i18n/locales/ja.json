@@ -20,6 +20,7 @@
     "online": "オンライン",
     "offline": "オフライン",
     "viewAll": "すべて表示",
+    "newFilter": "新規フィルター",
     "noRecentActivity": "最近のアクティビティなし"
   },
   "filter": {
@@ -86,6 +87,7 @@
   },
   "common": {
     "loading": "読み込み中...",
+    "analyze": "分析",
     "error": "エラー",
     "noData": "データなし",
     "export": "エクスポート",
@@ -248,5 +250,17 @@
     "pause": "一時停止",
     "reset": "リセット",
     "speed": "速度"
+  },
+  "history": {
+    "title": "分析履歴"
+  },
+  "replay": {
+    "title": "取引リプレイ"
+  },
+  "results": {
+    "title": "フィルター結果"
+  },
+  "whales": {
+    "title": "クジラライブラリ"
   }
 }

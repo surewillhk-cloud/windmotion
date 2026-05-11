@@ -131,7 +131,7 @@ const messages: Record<EmbedLang, EmbedMessages> = {
   ko: {
     liveInference: '실시간 추론',
     stage: '단계',
-    step: '步骤',
+    step: '단계',
     complete: '완료',
     elapsed: '경과',
     agents: '에이전트',

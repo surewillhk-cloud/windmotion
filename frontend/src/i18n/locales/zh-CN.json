@@ -20,6 +20,7 @@
     "online": "在线",
     "offline": "离线",
     "viewAll": "查看全部",
+    "newFilter": "新建过滤器",
     "noRecentActivity": "暂无最近活动"
   },
   "filter": {
@@ -86,6 +87,7 @@
   },
   "common": {
     "loading": "加载中...",
+    "analyze": "分析",
     "error": "错误",
     "noData": "暂无数据",
     "export": "导出",
@@ -248,5 +250,17 @@
     "pause": "暂停",
     "reset": "重置",
     "speed": "速度"
+  },
+  "history": {
+    "title": "历史分析记录"
+  },
+  "replay": {
+    "title": "交易回放"
+  },
+  "results": {
+    "title": "筛选结果"
+  },
+  "whales": {
+    "title": "鲸鱼库"
   }
 }

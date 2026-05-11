@@ -20,6 +20,7 @@
     "online": "Online",
     "offline": "Offline",
     "viewAll": "View All",
+    "newFilter": "New Filter",
     "noRecentActivity": "No recent activity"
   },
   "filter": {
@@ -86,6 +87,7 @@
   },
   "common": {
     "loading": "Loading...",
+    "analyze": "Analyze",
     "error": "Error",
     "noData": "No data",
     "export": "Export",
@@ -248,5 +250,17 @@
     "pause": "Pause",
     "reset": "Reset",
     "speed": "Speed"
+  },
+  "history": {
+    "title": "Analysis History"
+  },
+  "replay": {
+    "title": "Trade Replay"
+  },
+  "results": {
+    "title": "Filter Results"
+  },
+  "whales": {
+    "title": "Whale Library"
   }
 }

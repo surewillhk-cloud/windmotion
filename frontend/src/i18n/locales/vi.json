@@ -20,6 +20,7 @@
     "online": "Trực tuyến",
     "offline": "Ngoại tuyến",
     "viewAll": "Xem tất cả",
+    "newFilter": "Bộ lọc mới",
     "noRecentActivity": "Không có hoạt động gần đây"
   },
   "filter": {
@@ -86,6 +87,7 @@
   },
   "common": {
     "loading": "Đang tải...",
+    "analyze": "Phân tích",
     "error": "Lỗi",
     "noData": "Không có dữ liệu",
     "export": "Xuất",
@@ -248,5 +250,17 @@
     "pause": "Tạm dừng",
     "reset": "Đặt lại",
     "speed": "Tốc độ"
+  },
+  "history": {
+    "title": "Lịch sử phân tích"
+  },
+  "replay": {
+    "title": "Phát lại giao dịch"
+  },
+  "results": {
+    "title": "Kết quả bộ lọc"
+  },
+  "whales": {
+    "title": "Thư viện Cá voi"
   }
 }
