@@ -1,8 +1,22 @@
 {
-  "build": {
-    "cmd": "pip install -r backend/requirements.txt -r worker/requirements.txt"
+  "$schema": "https://schema.railpack.com",
+  "packages": {
+    "python": "3.11"
   },
-  "start": {
-    "cmd": "python -m worker.main"
+  "buildAptPackages": ["gcc", "libpq-dev"],
+  "steps": {
+    "install": {
+      "commands": [
+        "pip install -r backend/requirements.txt",
+        "pip install -r worker/requirements.txt"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "python -m worker.main",
+    "inputs": [
+      { "step": "install" },
+      { "local": true, "include": ["backend/", "worker/"] }
+    ]
   }
 }
